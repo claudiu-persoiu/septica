@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="mobile-web-app-capable" content="yes">
+    <style type="text/css">
+        h1 {
+            text-align: center;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .step {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Sedma</h1>
+</div>
+
+<div class="step" id="step-new">
+    <div class="center">
+        <div>Start?</div>
+        <button id="start-new">start new game</button>
+    </div>
+
+    <div>
+        <div class="center">Join?</div>
+        <div class="center">
+            <form>
+                <input type="url" name="join_url">
+                <input type="submit" value="Go">
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="step" id="step-start">
+
+</div>
+
+<div class="step" id="step-joined">
+
+</div>
+
+<div class="step" id="step-game">
+
+</div>
+
+
+<div id="not-connected">Not connected. Retry?</div>
+<div>
+    <button id="action">action!</button>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="></script>
+<script src="/js/communication-handler.js"></script>
+<script>
+
+    $(function () {
+
+        $('#step-new').show(100);
+
+        var communication = communicationHandler("ws://" + window.location.hostname + "{{.Address}}", function (message) {
+            console.log(message);
+        });
+        communication.connect();
+
+        $('#start-new').click(function (e) {
+            e.preventDefault();
+            communication.send(1, "start");
+        });
+    });
+
+</script>
+
+</body>
+</html>
