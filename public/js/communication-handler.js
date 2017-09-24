@@ -20,6 +20,10 @@ var communicationHandler = function (url, callback) {
 
     return {
         send: function (type, message) {
+            if (!message) {
+                message = "";
+            }
+
             if (socketOpened) {
                 return socket.send(JSON.stringify({"step": type, "command": message}));
             }

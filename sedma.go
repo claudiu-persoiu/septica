@@ -11,7 +11,7 @@ import (
 func main() {
 
 	websocketPath := "/echo"
-	address := ":8000"
+	address := ":8080"
 
 	page := &web.Page{Title: "Sedman", Address: address + websocketPath}
 

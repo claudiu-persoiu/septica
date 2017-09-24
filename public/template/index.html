@@ -59,7 +59,11 @@
 <div>
     <button id="action">action!</button>
 </div>
-<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="></script>
+<script
+        src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.4/vue.js"></script>
 <script src="/js/communication-handler.js"></script>
 <script>
 
@@ -69,6 +73,12 @@
 
         var communication = communicationHandler("ws://" + window.location.hostname + "{{.Address}}", function (message) {
             console.log(message);
+
+            switch (message.step) {
+                case 1:
+                    console.log(message.command);
+                    break;
+            }
         });
         communication.connect();
 

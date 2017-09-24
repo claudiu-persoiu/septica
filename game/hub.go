@@ -7,13 +7,16 @@ import (
 type Hub struct {
 	games map[string]*Game
 	Messages chan string
-	// connected users that are not playing yet
-	lobby map[*Client]bool
 	Start chan *Client
+	users map[*Client]string
 }
 
 func NewHub() *Hub {
-	hub := &Hub{Messages: make(chan string), lobby: make(map[*Client]bool)}
+	hub := &Hub{
+		Messages: make(chan string),
+		Start: make(chan *Client),
+		games: make(map[string] *Game),
+		users: make(map[*Client]string)}
 	go hub.processMessages()
 	return hub
 }
@@ -22,10 +25,14 @@ func (h *Hub) processMessages() {
 	for {
 		select {
 		case client := <- h.Start:
-			g := NewGame()
-			key := h.registerGame(g)
-			g.AddPlayer(client)
-			client.send <- []byte(key)
+			key, ok := h.users[client]
+			if !ok {
+				g := NewGame()
+				key = h.registerGame(g)
+				g.AddPlayer(client)
+				h.users[client] = key
+			}
+			client.Send <- &Message{Step:START, Command:key}
 		}
 	}
 }
@@ -41,7 +48,7 @@ func randSeq(n int) string {
 }
 
 func (h *Hub) registerGame(game *Game) string {
-	key := randSeq(5)
+	key := randSeq(7)
 	h.games[key] = game
 
 	return key

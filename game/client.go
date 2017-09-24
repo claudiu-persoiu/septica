@@ -7,18 +7,19 @@ import (
 	"bytes"
 	"net/http"
 	"encoding/json"
+	"fmt"
 )
 
 type Client struct {
 	connection *websocket.Conn
-	send       chan []byte
+	Send       chan *Message
 	hub        *Hub
 	gameKey    string
 }
 
 type Message struct {
-	Step    int
-	Command string `json:",omitempty"`
+	Step    int `json:"step"`
+	Command string `json:"command,omitempty"`
 }
 
 const (
@@ -28,7 +29,7 @@ const (
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second
 
-	// send pings to peer with this period. Must be less than pongWait.
+	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
@@ -52,7 +53,7 @@ func HandleWebsocket(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
 		return nil
 	}
 
-	client := &Client{connection: conn, send: make(chan []byte, 256), hub: hub}
+	client := &Client{connection: conn, Send: make(chan *Message, 256), hub: hub}
 
 	go client.writePump()
 	go client.readPump()
@@ -88,6 +89,8 @@ func (c *Client) readPump() {
 
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 
+		fmt.Println(string(message))
+
 		var obj Message
 		if err := json.Unmarshal(message, &obj); err == nil {
 			c.processMessage(obj)
@@ -104,7 +107,10 @@ func (c *Client) writePump() {
 	}()
 	for {
 		select {
-		case message, ok := <-c.send:
+		case message, ok := <-c.Send:
+
+			fmt.Println(message)
+
 			c.connection.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
@@ -116,13 +122,24 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write(message)
+			jsonMessage, err := json.Marshal(message)
+
+			if err != nil {
+				return
+			}
+
+			w.Write(jsonMessage)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
+			n := len(c.Send)
 			for i := 0; i < n; i++ {
 				w.Write(newline)
-				w.Write(<-c.send)
+				jsonMessage, err := json.Marshal(<-c.Send)
+
+				if err != nil {
+					return
+				}
+				w.Write(jsonMessage)
 			}
 
 			if err := w.Close(); err != nil {
