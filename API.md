@@ -10,10 +10,10 @@ Send:
 ```
 
 Result:
-```json
+```
 {
   "success": true,
-  "action": "string", // same as send
+  "action": "string",
   "data": "string"
 }
 ```
