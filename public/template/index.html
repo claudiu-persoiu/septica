@@ -15,7 +15,8 @@
         }
 
         .step {
-            display: none;
+            /*display: none;*/
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -43,15 +44,30 @@
 </div>
 
 <div class="step" id="step-start">
-
+    <div>
+        <div class="center">Start</div>
+        <div class="center">
+            <div>URL: <span>url</span></div>
+            <div>Share with your friends</div>
+            <div><button>start (x) payers joined</button></div>
+        </div>
+    </div>
 </div>
 
 <div class="step" id="step-joined">
-
+    <div>
+        <div class="center">Joined</div>
+        <div class="center">Waiting to start...</div>
+    </div>
 </div>
 
 <div class="step" id="step-game">
-
+    <div>
+        <div class="center">Game ON</div>
+        <div class="center">
+            <canvas style="width: 400px; height: 400px; border: 1px solid red"></canvas>
+        </div>
+    </div>
 </div>
 
 
@@ -72,8 +88,6 @@
         $('#step-new').show(100);
 
         var communication = communicationHandler("ws://" + window.location.hostname + "{{.Address}}", function (message) {
-            console.log(message);
-
             switch (message.step) {
                 case 1:
                     console.log(message.command);
@@ -82,9 +96,20 @@
         });
         communication.connect();
 
+        var communication2 = communicationHandler("ws://" + window.location.hostname + "{{.Address}}", function (message) {
+            switch (message.step) {
+                case 1:
+                    console.log(message.command);
+                    break;
+            }
+        });
+
+        communication2.connect();
+
         $('#start-new').click(function (e) {
             e.preventDefault();
             communication.send(1, "start");
+            communication2.send(1, "start");
         });
     });
 

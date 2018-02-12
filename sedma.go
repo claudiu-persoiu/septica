@@ -13,9 +13,12 @@ func main() {
 	websocketPath := "/echo"
 	address := ":8080"
 
-	page := &web.Page{Title: "Sedman", Address: address + websocketPath}
-
+	page := &web.Page{Title: "Sedman", Address: address + websocketPath, File: "index"}
 	http.HandleFunc("/", page.Handle)
+
+	page = &web.Page{Title: "Sedman Simulator", Address: address + websocketPath, File: "simulator"}
+	http.HandleFunc("/simulator", page.Handle)
+
 	http.Handle("/js/", http.FileServer(http.Dir("public")))
 
 	hub := game.NewHub()

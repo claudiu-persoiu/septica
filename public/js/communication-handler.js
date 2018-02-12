@@ -19,13 +19,13 @@ var communicationHandler = function (url, callback) {
     };
 
     return {
-        send: function (type, message) {
-            if (!message) {
-                message = "";
+        send: function (action, data) {
+            if (!data) {
+                data = "";
             }
 
             if (socketOpened) {
-                return socket.send(JSON.stringify({"step": type, "command": message}));
+                return socket.send(JSON.stringify({"action": action, "data": data}));
             }
             return false;
         },

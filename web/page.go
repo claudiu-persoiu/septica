@@ -9,10 +9,11 @@ import (
 type Page struct {
 	Title   string
 	Address string
+	File    string
 }
 
 func (page *Page) Handle(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("public/template/index.html")
+	t, err := template.ParseFiles("public/template/" + page.File + ".html")
 
 	if err != nil {
 		log.Panic(err)
@@ -23,5 +24,4 @@ func (page *Page) Handle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }

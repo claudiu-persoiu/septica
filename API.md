@@ -23,7 +23,7 @@ Result:
 |  Action 	|   Send   	|      Receive      	|                  Description                  	|
 |:-------:	|:--------:	|:-----------------:	|:---------------------------------------------:	|
 | start   	| nil      	| game_key          	| Start a new game                              	|
-| join    	| game_key 	| wait/invalid/full 	| Join an already started game                  	|
+| join    	| game_key 	| wait/invalid/full/started 	| Join an already started game                  	|
 | begin   	|          	|                   	| Start the game with current number of players 	|
 | joined  	|          	|                   	| A player joined the game                      	|
 | dropped 	|          	|                   	| A player dropped/quit                         	|

@@ -18,8 +18,43 @@ type Client struct {
 }
 
 type Message struct {
-	Step    int `json:"step"`
-	Command string `json:"command,omitempty"`
+	Action string `json:"action"`
+	Data   string `json:"data,omitempty"`
+}
+
+func HandleWebsocket(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	client := &Client{connection: conn, Send: make(chan *Message, 256), hub: hub}
+
+	go client.writePump()
+	go client.readPump()
+
+	return client
+}
+
+func (c *Client) processMessage(message Message) {
+
+	switch message.Action {
+	case "start":
+		c.hub.Start <- c
+	case "join":
+		err := c.hub.Join(message.Data, c)
+		if err != nil {
+			c.Send <- &Message{Action: "join", Data: err.Error()}
+		} else {
+			c.Send <- &Message{Action: "join", Data: "wait"}
+		}
+	case "begin":
+		c.hub.Begin(c)
+	default:
+		c.Send <- &Message{Action: "error", Data: "invalid command"}
+	}
 }
 
 const (
@@ -44,30 +79,6 @@ var (
 		WriteBufferSize: 1024,
 	}
 )
-
-func HandleWebsocket(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	client := &Client{connection: conn, Send: make(chan *Message, 256), hub: hub}
-
-	go client.writePump()
-	go client.readPump()
-
-	return client
-}
-
-func (c *Client) processMessage(message Message) {
-
-	switch message.Step {
-	case START:
-		c.hub.Start <- c
-	}
-}
 
 func (c *Client) readPump() {
 	defer func() {
