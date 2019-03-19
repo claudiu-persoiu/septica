@@ -1,36 +1,43 @@
 package main
 
 import (
-	"net/http"
 	"log"
-	"github.com/claudiu-persoiu/sedma/web"
-	"fmt"
-	"github.com/claudiu-persoiu/sedma/game"
+	"net/http"
+
+	"github.com/claudiu-persoiu/sedma/server"
 )
 
 func main() {
 
-	websocketPath := "/echo"
+	// websocketPath := "/echo"
 	address := ":8080"
 
-	page := &web.Page{Title: "Sedman", Address: address + websocketPath, File: "index"}
-	http.HandleFunc("/", page.Handle)
+	// page := web.NewPageHandler("Sedman", address+websocketPath, "index")
+	// http.HandleFunc("/", page.Handle)
 
-	page = &web.Page{Title: "Sedman Simulator", Address: address + websocketPath, File: "simulator"}
-	http.HandleFunc("/simulator", page.Handle)
+	// page = web.NewPageHandler("Sedman Simulator", address+websocketPath, "simulator")
+	// http.HandleFunc("/simulator", page.Handle)
 
-	http.Handle("/js/", http.FileServer(http.Dir("public")))
+	// http.Handle("/js/", http.FileServer(http.Dir("public")))
 
-	hub := game.NewHub()
+	// hub := game.NewHub()
 
-	http.HandleFunc(websocketPath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("joined...")
-		game.HandleWebsocket(w, r, hub)
-	})
+	// http.HandleFunc(websocketPath, func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Println("joined...")
+	// 	game.HandleWebsocket(w, r, hub)
+	// })
 
-	fmt.Println("Starting server: " + address)
+	// fmt.Println("Starting server: " + address)
 
-	err := http.ListenAndServe(address, nil)
+	// server, err := NewGameServer()
+
+	server, err := server.NewGameServer()
+
+	if err != nil {
+		log.Fatal("Unable to start server", err)
+	}
+
+	err = http.ListenAndServe(address, server)
 
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

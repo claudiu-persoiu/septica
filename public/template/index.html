@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{.Title}}</title>
+    <title>Sedma</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <meta name="mobile-web-app-capable" content="yes">
     <style type="text/css">
@@ -87,7 +87,7 @@
 
         $('#step-new').show(100);
 
-        var communication = communicationHandler("ws://" + window.location.hostname + "{{.Address}}", function (message) {
+        var communication = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
             switch (message.step) {
                 case 1:
                     console.log(message.command);
@@ -96,7 +96,7 @@
         });
         communication.connect();
 
-        var communication2 = communicationHandler("ws://" + window.location.hostname + "{{.Address}}", function (message) {
+        var communication2 = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
             switch (message.step) {
                 case 1:
                     console.log(message.command);
