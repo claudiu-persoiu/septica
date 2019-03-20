@@ -17,7 +17,7 @@ func NewGameServer() (*GameServer, error) {
 	router := http.NewServeMux()
 	router.Handle("/", http.HandlerFunc(server.pageHandler))
 	router.Handle("/simulator", http.HandlerFunc(server.simulatorHandler))
-	// router.Handle("/js/", http.FileServer(http.Dir("public")))
+	router.Handle("/js/", http.FileServer(http.Dir("public")))
 	router.Handle("/ws", http.HandlerFunc(server.webSocket))
 
 	server.Handler = router

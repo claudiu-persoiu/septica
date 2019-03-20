@@ -64,13 +64,25 @@
         var p1 = communicationHandler(address, logMessage('player1'));
         p1.connect();
 
+        var p2 = communicationHandler(address, logMessage('player2'));
+        p1.connect();
+
+        var p3 = communicationHandler(address, logMessage('player3'));
+        p1.connect();
+
         var steps = [
             function () {
                 host.send('start');
             },
             function () {
                 p1.send('join', game);
-            }
+            },
+            function () {
+                p2.send('join', game);
+            },
+            function () {
+                p3.send('join', game);
+            },
         ];
 
         for (var i = 0; i < steps.length; i++) {
