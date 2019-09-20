@@ -1,48 +1,37 @@
 package game
 
 import (
-	"github.com/gorilla/websocket"
-	"time"
-	"log"
-	"bytes"
-	"net/http"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
+// Client - Game client
 type Client struct {
 	connection *websocket.Conn
 	Send       chan *Message
 	hub        *Hub
-	gameKey    string
 }
 
-type Message struct {
-	Action string `json:"action"`
-	Data   string `json:"data,omitempty"`
-}
+func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
+	conn, err := wsUpgrader.Upgrade(w, r, nil)
 
-func HandleWebsocket(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
-
-	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
-		return nil
+		log.Printf("problem upgrading connection to websockets %v\n", err)
 	}
 
-	client := &Client{connection: conn, Send: make(chan *Message, 256), hub: hub}
-
-	go client.writePump()
-	go client.readPump()
-
-	return client
+	return &Client{connection: conn, Send: make(chan *Message, 256), hub: hub}
 }
 
 func (c *Client) processMessage(message Message) {
 
 	switch message.Action {
 	case "start":
-		c.hub.Start <- c
+		c.hub.Start(c)
 	case "join":
 		err := c.hub.Join(message.Data, c)
 		if err != nil {
@@ -57,6 +46,11 @@ func (c *Client) processMessage(message Message) {
 	}
 }
 
+var wsUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 const (
 	// Time allowed to write a message to the peer.
 	writeWait = 10 * time.Second
@@ -66,9 +60,6 @@ const (
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
-
-	// Maximum message size allowed from peer.
-	maxMessageSize = 512
 )
 
 var (
@@ -80,17 +71,12 @@ var (
 	}
 )
 
-func (c *Client) readPump() {
+func (c *Client) waitForMsg() {
 	defer func() {
-		//c.hub.unregister <- c
 		c.connection.Close()
 	}()
-	c.connection.SetReadLimit(maxMessageSize)
-	c.connection.SetReadDeadline(time.Now().Add(pongWait))
-	c.connection.SetPongHandler(func(string) error { c.connection.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.connection.ReadMessage()
-
+		_, msg, err := c.connection.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				log.Printf("error: %v", err)
@@ -98,19 +84,20 @@ func (c *Client) readPump() {
 			break
 		}
 
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-
-		fmt.Println(string(message))
+		log.Print(string(msg))
 
 		var obj Message
-		if err := json.Unmarshal(message, &obj); err == nil {
+		if err := json.Unmarshal(msg, &obj); err == nil {
 			c.processMessage(obj)
+			log.Print(obj.Action)
+		} else {
+			log.Println("Error parcing message:")
+			log.Println(err)
 		}
-
 	}
 }
 
-func (c *Client) writePump() {
+func (c *Client) sendMessage() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -133,8 +120,8 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			jsonMessage, err := json.Marshal(message)
 
+			jsonMessage, err := json.Marshal(message)
 			if err != nil {
 				return
 			}

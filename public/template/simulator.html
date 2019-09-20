@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Simulator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="mobile-web-app-capable" content="yes">
     <style type="text/css">
         h1 {
@@ -23,74 +24,83 @@
         }
     </style>
 </head>
+
 <body>
 
-<div class="header">
-    <h1>Sedma simulator</h1>
+    <div class="header">
+        <h1>Sedma simulator</h1>
 
-    <div id="container"></div>
-</div>
+        <div id="container"></div>
+    </div>
 
-<script
-        src="https://code.jquery.com/jquery-3.2.1.min.js"
-        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-        crossorigin="anonymous"></script>
-<script src="/js/communication-handler.js"></script>
-<script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="/js/communication-handler.js"></script>
+    <script>
 
-    var game = false;
+        var game = false;
 
-    function logMessage(label) {
-        return function (message) {
+        function logMessage(label) {
+            return function (message) {
 
-            if (!game) {
-                game = message.data;
+                if (!game) {
+                    game = message.data;
+                }
+
+                $('<div/>', {
+                    class: label,
+                    text: label + ": " + JSON.stringify(message)
+                }).appendTo('#container');
             }
-
-            $('<div/>', {
-                class: label,
-                text: label + ": " +JSON.stringify(message)
-            }).appendTo('#container');
         }
-    }
 
-    var address = "ws://" + window.location.host + "/ws";
+        var address = "ws://" + window.location.host + "/ws";
 
-    $(function () {
+        $(function () {
 
-        var host = communicationHandler(address, logMessage('host'));
-        host.connect();
+            var host = communicationHandler(address, logMessage('host'));
+            host.connect();
 
-        var p1 = communicationHandler(address, logMessage('player1'));
-        p1.connect();
+            var p1 = communicationHandler(address, logMessage('player1'));
+            p1.connect();
 
-        var p2 = communicationHandler(address, logMessage('player2'));
-        p1.connect();
+            var p2 = communicationHandler(address, logMessage('player2'));
+            p2.connect();
 
-        var p3 = communicationHandler(address, logMessage('player3'));
-        p1.connect();
+            var p3 = communicationHandler(address, logMessage('player3'));
+            p3.connect();
 
-        var steps = [
-            function () {
-                host.send('start');
-            },
-            function () {
-                p1.send('join', game);
-            },
-            function () {
-                p2.send('join', game);
-            },
-            function () {
-                p3.send('join', game);
-            },
-        ];
+            var steps = [
+                function () {
+                    console.log('start');
+                },
+                function () {
+                    host.send('start');
+                },
+                function () {
+                    p1.send('join', game);
+                },
+                function () {
+                    p2.send('join', game);
+                },
+                function () {
+                    p3.send('join', game);
+                },
+                function () {
+                    host.send('begin');
+                },
+                function () {
+                    console.log('end');
+                },
+            ];
 
-        for (var i = 0; i < steps.length; i++) {
-            setTimeout(steps[i], 500 * i);
-        }
-    });
+            for (var i = 0; i < steps.length; i++) {
+                setTimeout(steps[i], 500 * i);
+            }
+        });
 
-</script>
+    </script>
 
 </body>
+
 </html>

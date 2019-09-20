@@ -1,6 +1,9 @@
 package game
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type Game struct {
 	State   int
@@ -44,6 +47,9 @@ func (g *Game) notifyClients() {
 
 func (g *Game) Start() {
 	g.State = STARTED
+
+	fmt.Println("started game")
+
 	// generat pachet de carti
 	// shuffle
 	// impartit cartile

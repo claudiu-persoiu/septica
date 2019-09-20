@@ -5,21 +5,21 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/claudiu-persoiu/sedma/server"
+	"github.com/claudiu-persoiu/sedma/game"
 )
 
 func main() {
 
-	address := ":8080"
+	address := ":8008"
 
 	fmt.Println("Starting server: " + address)
-	server, err := server.NewGameServer()
+	server, err := game.NewGameServer()
 
 	if err != nil {
 		log.Fatal("Unable to start server", err)
 	}
 
-	err = http.ListenAndServe(address, server)
+	err = http.ListenAndServe(address, server.GetHandler())
 
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

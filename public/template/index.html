@@ -25,7 +25,7 @@
 <div class="header">
     <h1>Sedma</h1>
 </div>
-
+<!-- 
 <div class="step" id="step-new">
     <div class="center">
         <div>Start?</div>
@@ -74,7 +74,7 @@
 <div id="not-connected">Not connected. Retry?</div>
 <div>
     <button id="action">action!</button>
-</div>
+</div> -->
 <script
         src="https://code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
@@ -83,35 +83,35 @@
 <script src="/js/communication-handler.js"></script>
 <script>
 
-    $(function () {
+    // $(function () {
 
-        $('#step-new').show(100);
+    //     $('#step-new').show(100);
 
-        var communication = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
-            switch (message.step) {
-                case 1:
-                    console.log(message.command);
-                    break;
-            }
-        });
-        communication.connect();
+    //     var communication = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
+    //         switch (message.step) {
+    //             case 1:
+    //                 console.log(message.command);
+    //                 break;
+    //         }
+    //     });
+    //     communication.connect();
 
-        var communication2 = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
-            switch (message.step) {
-                case 1:
-                    console.log(message.command);
-                    break;
-            }
-        });
+    //     var communication2 = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
+    //         switch (message.step) {
+    //             case 1:
+    //                 console.log(message.command);
+    //                 break;
+    //         }
+    //     });
 
-        communication2.connect();
+    //     communication2.connect();
 
-        $('#start-new').click(function (e) {
-            e.preventDefault();
-            communication.send(1, "start");
-            communication2.send(1, "start");
-        });
-    });
+    //     $('#start-new').click(function (e) {
+    //         e.preventDefault();
+    //         communication.send(1, "start");
+    //         communication2.send(1, "start");
+    //     });
+    // });
 
 </script>
 
