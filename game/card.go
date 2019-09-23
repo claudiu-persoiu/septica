@@ -1,9 +1,6 @@
 package game
 
 type Card struct {
-	Number int
-	Type   int
+	Number string `json:"number"`
+	Type   string `json:"type"`
 }
-
-var suits = [4]string{"diamond", "hearts", "spades", "clubs"}
-var ranks = [8]string{"7", "8", "9", "10", "J", "Q", "K", "A"}

@@ -15,6 +15,7 @@ type Client struct {
 	connection *websocket.Conn
 	Send       chan *Message
 	hub        *Hub
+	cards      []*Card
 }
 
 func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
@@ -46,11 +47,6 @@ func (c *Client) processMessage(message Message) {
 	}
 }
 
-var wsUpgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
 const (
 	// Time allowed to write a message to the peer.
 	writeWait = 10 * time.Second
@@ -63,6 +59,10 @@ const (
 )
 
 var (
+	wsUpgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
 	newline  = []byte{'\n'}
 	space    = []byte{' '}
 	upgrader = websocket.Upgrader{
@@ -72,9 +72,7 @@ var (
 )
 
 func (c *Client) waitForMsg() {
-	defer func() {
-		c.connection.Close()
-	}()
+	defer c.connection.Close()
 	for {
 		_, msg, err := c.connection.ReadMessage()
 		if err != nil {

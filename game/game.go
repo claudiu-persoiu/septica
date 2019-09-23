@@ -1,14 +1,17 @@
 package game
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 type Game struct {
 	State   int
 	Clients []*Client
-	Deck    []Card
+	Deck    []*Card
 	turn    int
 }
 
@@ -50,8 +53,65 @@ func (g *Game) Start() {
 
 	fmt.Println("started game")
 
-	// generat pachet de carti
-	// shuffle
-	// impartit cartile
-	// distribuit carti
+	g.Deck = cardsShuffle()
+
+	// cards, _ := json.Marshal(g.Deck)
+	// fmt.Println(string(cards))
+
+	for _, client := range g.Clients {
+		client.cards = append(client.cards, g.Deck[len(g.Deck)-4:]...)
+		g.Deck = g.Deck[:len(g.Deck)-4]
+		cards, _ := json.Marshal(client.cards)
+		client.Send <- &Message{Action: "cards", Data: string(cards)}
+	}
+
+	fmt.Println(len(g.Deck))
+}
+
+var deck = []*Card{
+	&Card{Number: "7", Type: "diamond"},
+	&Card{Number: "8", Type: "diamond"},
+	&Card{Number: "9", Type: "diamond"},
+	&Card{Number: "10", Type: "diamond"},
+	&Card{Number: "J", Type: "diamond"},
+	&Card{Number: "Q", Type: "diamond"},
+	&Card{Number: "K", Type: "diamond"},
+	&Card{Number: "A", Type: "diamond"},
+	&Card{Number: "7", Type: "hearts"},
+	&Card{Number: "8", Type: "hearts"},
+	&Card{Number: "9", Type: "hearts"},
+	&Card{Number: "10", Type: "hearts"},
+	&Card{Number: "J", Type: "hearts"},
+	&Card{Number: "Q", Type: "hearts"},
+	&Card{Number: "K", Type: "hearts"},
+	&Card{Number: "A", Type: "hearts"},
+	&Card{Number: "7", Type: "spades"},
+	&Card{Number: "8", Type: "spades"},
+	&Card{Number: "9", Type: "spades"},
+	&Card{Number: "10", Type: "spades"},
+	&Card{Number: "J", Type: "spades"},
+	&Card{Number: "Q", Type: "spades"},
+	&Card{Number: "K", Type: "spades"},
+	&Card{Number: "A", Type: "spades"},
+	&Card{Number: "7", Type: "clubs"},
+	&Card{Number: "8", Type: "clubs"},
+	&Card{Number: "9", Type: "clubs"},
+	&Card{Number: "10", Type: "clubs"},
+	&Card{Number: "J", Type: "clubs"},
+	&Card{Number: "Q", Type: "clubs"},
+	&Card{Number: "K", Type: "clubs"},
+	&Card{Number: "A", Type: "clubs"},
+}
+
+func cardsShuffle() []*Card {
+	newDeck := make([]*Card, len(deck))
+	copy(newDeck, deck)
+
+	fmt.Println(deck)
+	fmt.Println(newDeck)
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(newDeck), func(i, j int) { newDeck[i], newDeck[j] = newDeck[j], newDeck[i] })
+
+	return newDeck
 }

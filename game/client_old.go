@@ -78,7 +78,7 @@ package game
 
 // func (c *Client) readPump() {
 // 	defer func() {
-// 		//c.hub.unregister <- c
+// 		//c.hub.unRegister <- c
 // 		c.connection.Close()
 // 	}()
 // 	// c.connection.SetReadLimit(maxMessageSize)
