@@ -90,6 +90,9 @@
                     host.send('begin');
                 },
                 function () {
+                    host.send('play', "1");
+                },
+                function () {
                     console.log('end');
                 },
             ];
