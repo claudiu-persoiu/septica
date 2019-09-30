@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -42,6 +43,13 @@ func (c *Client) processMessage(message Message) {
 		}
 	case "begin":
 		c.hub.Begin(c)
+	case "play":
+		i, err := strconv.Atoi(message.Data)
+		if err != nil {
+			c.Send <- &Message{Action: "error", Data: "invalid card index send"}
+		} else {
+			c.hub.Play(c, i)
+		}
 	default:
 		c.Send <- &Message{Action: "error", Data: "invalid command"}
 	}

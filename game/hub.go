@@ -65,16 +65,10 @@ func (h *Hub) Join(gameKey string, client *Client) error {
 }
 
 func (h *Hub) Begin(client *Client) error {
-	gKey, ok := h.users[client]
+	g, err := getGameFromClient(h, client)
 
-	if ok == false {
-		return errors.New("invalid")
-	}
-
-	g, ok := h.games[gKey]
-
-	if ok == false {
-		return errors.New("invalid")
+	if err != nil {
+		return errors.New("game not found")
 	}
 
 	if g.State != WAITING {
@@ -88,4 +82,25 @@ func (h *Hub) Begin(client *Client) error {
 	g.Start()
 
 	return nil
+}
+
+func (h *Hub) Play(client *Client, cardIndex int) error {
+	g, err := getGameFromClient(h, client)
+	return nil
+}
+
+func getGameFromClient(h *Hub, c *Client) (*Game, error) {
+	gKey, ok := h.users[c]
+
+	if ok == false {
+		return nil, errors.New("invalid")
+	}
+
+	g, ok := h.games[gKey]
+
+	if ok == false {
+		return nil, errors.New("invalid")
+	}
+
+	return g, nil
 }

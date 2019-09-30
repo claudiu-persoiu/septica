@@ -12,6 +12,7 @@ type Game struct {
 	State   int
 	Clients []*Client
 	Deck    []*Card
+	table   []*Card
 	turn    int
 }
 
