@@ -86,6 +86,16 @@ func (h *Hub) Begin(client *Client) error {
 
 func (h *Hub) Play(client *Client, cardIndex int) error {
 	g, err := getGameFromClient(h, client)
+	if err != nil {
+		return errors.New("game not found")
+	}
+
+	// see if it's this client's turn
+	// see if the card is available to the client
+	// add card to table
+	// remove card from user
+	// publish table to all users
+
 	return nil
 }
 
