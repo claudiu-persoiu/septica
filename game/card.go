@@ -1,6 +1,6 @@
 package game
 
-type Card struct {
+type card struct {
 	Number string `json:"number"`
 	Type   string `json:"type"`
 }

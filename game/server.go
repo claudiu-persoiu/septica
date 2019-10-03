@@ -7,14 +7,15 @@ import (
 	"text/template"
 )
 
-type GameServer struct {
+// Server object
+type Server struct {
 	handler http.Handler
 	hub     *Hub
 }
 
-// NewGameServer generate new game server
-func NewGameServer() (*GameServer, error) {
-	server := &GameServer{hub: NewHub()}
+// NewServer generate new game server
+func NewServer() (*Server, error) {
+	server := &Server{hub: NewHub()}
 
 	router := http.NewServeMux()
 	router.Handle("/", http.HandlerFunc(server.pageHandler))
@@ -28,11 +29,11 @@ func NewGameServer() (*GameServer, error) {
 }
 
 // GetHandler returns the server handler
-func (p *GameServer) GetHandler() http.Handler {
+func (p *Server) GetHandler() http.Handler {
 	return p.handler
 }
 
-func (p *GameServer) pageHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Server) pageHandler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("public/template/index.html")
 	if err != nil {
 		log.Fatal("unable to parse template")
@@ -41,7 +42,7 @@ func (p *GameServer) pageHandler(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, nil)
 }
 
-func (p *GameServer) simulatorHandler(w http.ResponseWriter, r *http.Request) {
+func (p *Server) simulatorHandler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("public/template/simulator.html")
 	if err != nil {
 		log.Fatal("unable to parse template")
@@ -50,7 +51,7 @@ func (p *GameServer) simulatorHandler(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, nil)
 }
 
-func (p *GameServer) webSocket(w http.ResponseWriter, r *http.Request) {
+func (p *Server) webSocket(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Connected")
 	ws := newClient(w, r, p.hub)
 

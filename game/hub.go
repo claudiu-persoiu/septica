@@ -2,32 +2,36 @@ package game
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 )
 
+// Hub games hub
 type Hub struct {
-	games    map[string]*Game
+	games    map[string]*game
 	Messages chan string
 	users    map[*Client]string
 }
 
+// NewHub create new Hub
 func NewHub() *Hub {
 	hub := &Hub{
 		Messages: make(chan string),
-		games:    make(map[string]*Game),
+		games:    make(map[string]*game),
 		users:    make(map[*Client]string)}
 	return hub
 }
 
+// Start start a new game
 func (h *Hub) Start(client *Client) {
 	key, ok := h.users[client]
 	if !ok {
-		g := NewGame()
+		g := newGame()
 		key = h.registerGame(g)
 		g.AddPlayer(client)
 		h.users[client] = key
 	}
-	client.Send <- &Message{Action: "start", Data: key}
+	client.Send <- &message{Action: "start", Data: key}
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -40,15 +44,14 @@ func randSeq(n int) string {
 	return string(b)
 }
 
-func (h *Hub) registerGame(game *Game) string {
+func (h *Hub) registerGame(game *game) string {
 	key := randSeq(7)
 	h.games[key] = game
 
 	return key
 }
 
-// maybe refactor into a channel?
-func (h *Hub) Join(gameKey string, client *Client) error {
+func (h *Hub) join(gameKey string, client *Client) error {
 	g, ok := h.games[gameKey]
 
 	if ok == false {
@@ -64,7 +67,7 @@ func (h *Hub) Join(gameKey string, client *Client) error {
 	return err
 }
 
-func (h *Hub) Begin(client *Client) error {
+func (h *Hub) begin(client *Client) error {
 	g, err := getGameFromClient(h, client)
 
 	if err != nil {
@@ -84,11 +87,13 @@ func (h *Hub) Begin(client *Client) error {
 	return nil
 }
 
-func (h *Hub) Play(client *Client, cardIndex int) error {
+func (h *Hub) play(client *Client, cardIndex int) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
 		return errors.New("game not found")
 	}
+
+	fmt.Println(g)
 
 	// see if it's this client's turn
 	// see if the card is available to the client
@@ -99,7 +104,7 @@ func (h *Hub) Play(client *Client, cardIndex int) error {
 	return nil
 }
 
-func getGameFromClient(h *Hub, c *Client) (*Game, error) {
+func getGameFromClient(h *Hub, c *Client) (*game, error) {
 	gKey, ok := h.users[c]
 
 	if ok == false {

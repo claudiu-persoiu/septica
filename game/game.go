@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-type Game struct {
+type game struct {
 	State   int
 	Clients []*Client
-	Deck    []*Card
-	table   []*Card
+	Deck    []*card
+	table   []*card
 	turn    int
 }
 
@@ -22,13 +22,13 @@ const (
 	OVER    = 2
 )
 
-func NewGame() *Game {
-	g := &Game{State: WAITING}
+func newGame() *game {
+	g := &game{State: WAITING}
 
 	return g
 }
 
-func (g *Game) AddPlayer(client *Client) error {
+func (g *game) AddPlayer(client *Client) error {
 	if g.State != WAITING {
 		return errors.New("started")
 	}
@@ -43,13 +43,13 @@ func (g *Game) AddPlayer(client *Client) error {
 	return nil
 }
 
-func (g *Game) notifyClients() {
+func (g *game) notifyClients() {
 	for _, client := range g.Clients {
-		client.Send <- &Message{Action: "joined"}
+		client.Send <- &message{Action: "joined"}
 	}
 }
 
-func (g *Game) Start() {
+func (g *game) Start() {
 	g.State = STARTED
 
 	fmt.Println("started game")
@@ -63,49 +63,49 @@ func (g *Game) Start() {
 		client.cards = append(client.cards, g.Deck[len(g.Deck)-4:]...)
 		g.Deck = g.Deck[:len(g.Deck)-4]
 		cards, _ := json.Marshal(client.cards)
-		client.Send <- &Message{Action: "cards", Data: string(cards)}
+		client.Send <- &message{Action: "cards", Data: string(cards)}
 	}
 
 	fmt.Println(len(g.Deck))
 }
 
-var deck = []*Card{
-	&Card{Number: "7", Type: "diamond"},
-	&Card{Number: "8", Type: "diamond"},
-	&Card{Number: "9", Type: "diamond"},
-	&Card{Number: "10", Type: "diamond"},
-	&Card{Number: "J", Type: "diamond"},
-	&Card{Number: "Q", Type: "diamond"},
-	&Card{Number: "K", Type: "diamond"},
-	&Card{Number: "A", Type: "diamond"},
-	&Card{Number: "7", Type: "hearts"},
-	&Card{Number: "8", Type: "hearts"},
-	&Card{Number: "9", Type: "hearts"},
-	&Card{Number: "10", Type: "hearts"},
-	&Card{Number: "J", Type: "hearts"},
-	&Card{Number: "Q", Type: "hearts"},
-	&Card{Number: "K", Type: "hearts"},
-	&Card{Number: "A", Type: "hearts"},
-	&Card{Number: "7", Type: "spades"},
-	&Card{Number: "8", Type: "spades"},
-	&Card{Number: "9", Type: "spades"},
-	&Card{Number: "10", Type: "spades"},
-	&Card{Number: "J", Type: "spades"},
-	&Card{Number: "Q", Type: "spades"},
-	&Card{Number: "K", Type: "spades"},
-	&Card{Number: "A", Type: "spades"},
-	&Card{Number: "7", Type: "clubs"},
-	&Card{Number: "8", Type: "clubs"},
-	&Card{Number: "9", Type: "clubs"},
-	&Card{Number: "10", Type: "clubs"},
-	&Card{Number: "J", Type: "clubs"},
-	&Card{Number: "Q", Type: "clubs"},
-	&Card{Number: "K", Type: "clubs"},
-	&Card{Number: "A", Type: "clubs"},
+var deck = []*card{
+	&card{Number: "7", Type: "diamond"},
+	&card{Number: "8", Type: "diamond"},
+	&card{Number: "9", Type: "diamond"},
+	&card{Number: "10", Type: "diamond"},
+	&card{Number: "J", Type: "diamond"},
+	&card{Number: "Q", Type: "diamond"},
+	&card{Number: "K", Type: "diamond"},
+	&card{Number: "A", Type: "diamond"},
+	&card{Number: "7", Type: "hearts"},
+	&card{Number: "8", Type: "hearts"},
+	&card{Number: "9", Type: "hearts"},
+	&card{Number: "10", Type: "hearts"},
+	&card{Number: "J", Type: "hearts"},
+	&card{Number: "Q", Type: "hearts"},
+	&card{Number: "K", Type: "hearts"},
+	&card{Number: "A", Type: "hearts"},
+	&card{Number: "7", Type: "spades"},
+	&card{Number: "8", Type: "spades"},
+	&card{Number: "9", Type: "spades"},
+	&card{Number: "10", Type: "spades"},
+	&card{Number: "J", Type: "spades"},
+	&card{Number: "Q", Type: "spades"},
+	&card{Number: "K", Type: "spades"},
+	&card{Number: "A", Type: "spades"},
+	&card{Number: "7", Type: "clubs"},
+	&card{Number: "8", Type: "clubs"},
+	&card{Number: "9", Type: "clubs"},
+	&card{Number: "10", Type: "clubs"},
+	&card{Number: "J", Type: "clubs"},
+	&card{Number: "Q", Type: "clubs"},
+	&card{Number: "K", Type: "clubs"},
+	&card{Number: "A", Type: "clubs"},
 }
 
-func cardsShuffle() []*Card {
-	newDeck := make([]*Card, len(deck))
+func cardsShuffle() []*card {
+	newDeck := make([]*card, len(deck))
 	copy(newDeck, deck)
 
 	fmt.Println(deck)

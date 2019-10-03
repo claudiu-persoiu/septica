@@ -13,7 +13,7 @@ func main() {
 	address := ":8008"
 
 	fmt.Println("Starting server: " + address)
-	server, err := game.NewGameServer()
+	server, err := game.NewServer()
 
 	if err != nil {
 		log.Fatal("Unable to start server", err)

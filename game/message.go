@@ -1,6 +1,6 @@
 package game
 
-type Message struct {
+type message struct {
 	Action string `json:"action"`
 	Data   string `json:"data,omitempty"`
 }

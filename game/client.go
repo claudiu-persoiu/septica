@@ -14,9 +14,9 @@ import (
 // Client - Game client
 type Client struct {
 	connection *websocket.Conn
-	Send       chan *Message
+	Send       chan *message
 	hub        *Hub
-	cards      []*Card
+	cards      []*card
 }
 
 func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
@@ -26,32 +26,32 @@ func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
 		log.Printf("problem upgrading connection to websockets %v\n", err)
 	}
 
-	return &Client{connection: conn, Send: make(chan *Message, 256), hub: hub}
+	return &Client{connection: conn, Send: make(chan *message, 256), hub: hub}
 }
 
-func (c *Client) processMessage(message Message) {
+func (c *Client) processMessage(m message) {
 
-	switch message.Action {
+	switch m.Action {
 	case "start":
 		c.hub.Start(c)
 	case "join":
-		err := c.hub.Join(message.Data, c)
+		err := c.hub.join(m.Data, c)
 		if err != nil {
-			c.Send <- &Message{Action: "join", Data: err.Error()}
+			c.Send <- &message{Action: "join", Data: err.Error()}
 		} else {
-			c.Send <- &Message{Action: "join", Data: "wait"}
+			c.Send <- &message{Action: "join", Data: "wait"}
 		}
 	case "begin":
-		c.hub.Begin(c)
+		c.hub.begin(c)
 	case "play":
-		i, err := strconv.Atoi(message.Data)
+		i, err := strconv.Atoi(m.Data)
 		if err != nil {
-			c.Send <- &Message{Action: "error", Data: "invalid card index send"}
+			c.Send <- &message{Action: "error", Data: "invalid card index send"}
 		} else {
-			c.hub.Play(c, i)
+			c.hub.play(c, i)
 		}
 	default:
-		c.Send <- &Message{Action: "error", Data: "invalid command"}
+		c.Send <- &message{Action: "error", Data: "invalid command"}
 	}
 }
 
@@ -92,7 +92,7 @@ func (c *Client) waitForMsg() {
 
 		log.Print(string(msg))
 
-		var obj Message
+		var obj message
 		if err := json.Unmarshal(msg, &obj); err == nil {
 			c.processMessage(obj)
 			log.Print(obj.Action)
