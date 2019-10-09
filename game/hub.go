@@ -31,6 +31,7 @@ func (h *Hub) Start(client *Client) {
 		g.AddPlayer(client)
 		h.users[client] = key
 	}
+	fmt.Println("Starting game: " + key)
 	client.Send <- &message{Action: "start", Data: key}
 }
 
@@ -93,12 +94,21 @@ func (h *Hub) play(client *Client, cardIndex int) error {
 		return errors.New("game not found")
 	}
 
-	fmt.Println(g)
-
 	// see if it's this client's turn
+	if len(g.table)%len(g.Clients) != client.position {
+		return errors.New("invalid turn")
+	}
+
+	card := client.cards[cardIndex]
+
 	// see if the card is available to the client
-	// add card to table
-	// remove card from user
+	if card == nil {
+		return errors.New("card unavailable")
+	}
+
+	g.table = append(g.table, card)
+	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
+
 	// publish table to all users
 
 	return nil

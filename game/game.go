@@ -37,15 +37,15 @@ func (g *game) AddPlayer(client *Client) error {
 		return errors.New("full")
 	}
 
-	g.notifyClients()
 	g.Clients = append(g.Clients, client)
+	client.position = len(g.Clients) - 1
 
 	return nil
 }
 
-func (g *game) notifyClients() {
+func (g *game) notifyClients(m *message) {
 	for _, client := range g.Clients {
-		client.Send <- &message{Action: "joined"}
+		client.Send <- m
 	}
 }
 

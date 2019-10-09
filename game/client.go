@@ -17,6 +17,7 @@ type Client struct {
 	Send       chan *message
 	hub        *Hub
 	cards      []*card
+	position   int
 }
 
 func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
