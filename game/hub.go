@@ -1,7 +1,6 @@
 package game
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -95,12 +94,11 @@ func (h *Hub) begin(client *Client) error {
 func (h *Hub) play(client *Client, cardIndex int) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
-		return errors.New("game not found")
+		return err
 	}
 
-	// see if it's this client's turn
-	if (len(g.table)+g.firstCard)%len(g.Clients) != client.position {
-		return errors.New("invalid turn")
+	if err := g.validTurn(client); err != nil {
+		return err
 	}
 
 	card := client.cards[cardIndex]
@@ -113,20 +111,28 @@ func (h *Hub) play(client *Client, cardIndex int) error {
 	tableLen := len(g.table)
 	if tableLen > 0 && tableLen%len(g.Clients) == 0 {
 		if !g.isCut(card) {
-			return err
+			return errors.New("this card is not a valid cut")
 		}
 	}
 
 	g.table = append(g.table, card)
 	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
 
-	cards, _ := json.Marshal(g.table)
-	g.notifyClients(&message{Action: "table", Data: string(cards)})
+	g.notifyClientsTableUpdate()
 
 	// if there are enough cards on the table we should check who's hand it is
 	// the host should be able to cut or clear table
 
 	return nil
+}
+
+func (h *Hub) fetchHand(client *Client) error {
+	g, err := getGameFromClient(h, client)
+	if err != nil {
+		return err
+	}
+
+	return g.fetchHand(client)
 }
 
 func getGameFromClient(h *Hub, c *Client) (*game, error) {

@@ -18,6 +18,7 @@ type Client struct {
 	hub        *Hub
 	cards      []*card
 	position   int
+	points     int
 }
 
 func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
@@ -50,7 +51,16 @@ func (c *Client) processMessage(m message) {
 			c.Send <- &message{Action: "error", Data: "invalid card index send"}
 		} else {
 			err := c.hub.play(c, i)
+			if err != nil {
+				fmt.Println(err)
+				c.Send <- &message{Action: "error", Data: err.Error()}
+			}
+		}
+	case "fetch":
+		err := c.hub.fetchHand(c)
+		if err != nil {
 			fmt.Println(err)
+			c.Send <- &message{Action: "error", Data: err.Error()}
 		}
 	default:
 		c.Send <- &message{Action: "error", Data: "invalid command"}

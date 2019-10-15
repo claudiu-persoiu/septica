@@ -120,6 +120,9 @@
                     host.send('play', "1");
                 },
                 function () {
+                    host.send('fetch');
+                },
+                function () {
                     console.log('end');
                 },
             ];

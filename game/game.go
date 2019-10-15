@@ -61,8 +61,8 @@ func (g *game) Start() {
 		client.cards = append(client.cards, g.Deck[len(g.Deck)-4:]...)
 		g.Deck = g.Deck[:len(g.Deck)-4]
 		cards, _ := json.Marshal(client.cards)
-		client.Send <- &message{Action: "possition", Data: strconv.Itoa(client.position)}
 		client.Send <- &message{Action: "cards", Data: string(cards)}
+		client.Send <- &message{Action: "possition", Data: strconv.Itoa(client.position)}
 	}
 
 	// client that will server
@@ -85,6 +85,72 @@ func (g *game) isCut(card *card) bool {
 	}
 
 	return false
+}
+
+func (g *game) validTurn(client *Client) error {
+	// see if it's this client's turn
+	if (len(g.table)+g.firstCard)%len(g.Clients) != client.position {
+		return errors.New("invalid turn")
+	}
+
+	return nil
+}
+
+func (g *game) getLastPlayerCut() *Client {
+	for i := len(g.table) - 1; i >= 0; i-- {
+		if g.isCut(g.table[i]) {
+			index := i % len(g.Clients)
+			return g.Clients[index]
+		}
+	}
+
+	return g.Clients[0]
+}
+
+func (g *game) notifyClientsTableUpdate() {
+	cards, _ := json.Marshal(g.table)
+	g.notifyClients(&message{Action: "table", Data: string(cards)})
+}
+
+func (g *game) fetchHand(client *Client) error {
+
+	if err := g.validTurn(client); err != nil {
+		return err
+	}
+
+	c := g.getLastPlayerCut()
+	for _, card := range g.table {
+		if card.Number == "10" || card.Number == "A" {
+			c.points++
+		}
+	}
+
+	g.firstCard = c.position
+
+	// publish points?
+	g.table = []*card{}
+	g.notifyClientsTableUpdate()
+
+	if len(g.Deck) == 0 {
+		// no more cards to deal
+		return nil
+	}
+
+	cardsMissing := (4 - len(g.Clients[0].cards)) * len(g.Clients)
+	cardsPerPlayer := cardsMissing / len(g.Clients)
+
+	if cardsMissing > len(g.Deck) {
+		cardsPerPlayer = len(g.Deck) / len(g.Clients)
+	}
+
+	for _, client := range g.Clients {
+		client.cards = append(client.cards, g.Deck[len(g.Deck)-cardsPerPlayer:]...)
+		g.Deck = g.Deck[:len(g.Deck)-cardsPerPlayer]
+		cards, _ := json.Marshal(client.cards)
+		client.Send <- &message{Action: "cards", Data: string(cards)}
+	}
+
+	return nil
 }
 
 var deck = []*card{
