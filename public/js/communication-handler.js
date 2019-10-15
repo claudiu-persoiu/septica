@@ -9,7 +9,10 @@ var communicationHandler = function (url, callback) {
         };
 
         socket.onmessage = function (event) {
-            callback(JSON.parse(event.data));
+            var messages = event.data.split("\n");
+            for (var message of messages) {
+                callback(JSON.parse(message));
+            }
         };
 
         socket.onclose = function () {

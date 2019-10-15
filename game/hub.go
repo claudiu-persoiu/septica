@@ -1,6 +1,7 @@
 package game
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -23,16 +24,19 @@ func NewHub() *Hub {
 }
 
 // Start start a new game
-func (h *Hub) Start(client *Client) {
+func (h *Hub) Start(client *Client) error {
 	key, ok := h.users[client]
 	if !ok {
 		g := newGame()
 		key = h.registerGame(g)
-		g.AddPlayer(client)
-		h.users[client] = key
+		if err := h.join(key, client); err != nil {
+			return err
+		}
 	}
 	fmt.Println("Starting game: " + key)
 	client.Send <- &message{Action: "start", Data: key}
+
+	return nil
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -61,7 +65,7 @@ func (h *Hub) join(gameKey string, client *Client) error {
 
 	err := g.AddPlayer(client)
 
-	if err != nil {
+	if err == nil {
 		h.users[client] = gameKey
 	}
 
@@ -95,7 +99,7 @@ func (h *Hub) play(client *Client, cardIndex int) error {
 	}
 
 	// see if it's this client's turn
-	if len(g.table)%len(g.Clients) != client.position {
+	if (len(g.table)+g.firstCard)%len(g.Clients) != client.position {
 		return errors.New("invalid turn")
 	}
 
@@ -106,10 +110,21 @@ func (h *Hub) play(client *Client, cardIndex int) error {
 		return errors.New("card unavailable")
 	}
 
+	tableLen := len(g.table)
+	if tableLen > 0 && tableLen%len(g.Clients) == 0 {
+		if !g.isCut(card) {
+			return err
+		}
+	}
+
 	g.table = append(g.table, card)
 	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
 
-	// publish table to all users
+	cards, _ := json.Marshal(g.table)
+	g.notifyClients(&message{Action: "table", Data: string(cards)})
+
+	// if there are enough cards on the table we should check who's hand it is
+	// the host should be able to cut or clear table
 
 	return nil
 }
@@ -118,13 +133,13 @@ func getGameFromClient(h *Hub, c *Client) (*game, error) {
 	gKey, ok := h.users[c]
 
 	if ok == false {
-		return nil, errors.New("invalid")
+		return nil, errors.New("invalid user in hub")
 	}
 
 	g, ok := h.games[gKey]
 
 	if ok == false {
-		return nil, errors.New("invalid")
+		return nil, errors.New("invalid user game key")
 	}
 
 	return g, nil

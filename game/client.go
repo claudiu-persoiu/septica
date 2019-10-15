@@ -49,7 +49,8 @@ func (c *Client) processMessage(m message) {
 		if err != nil {
 			c.Send <- &message{Action: "error", Data: "invalid card index send"}
 		} else {
-			c.hub.play(c, i)
+			err := c.hub.play(c, i)
+			fmt.Println(err)
 		}
 	default:
 		c.Send <- &message{Action: "error", Data: "invalid command"}

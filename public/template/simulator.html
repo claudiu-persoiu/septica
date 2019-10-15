@@ -15,12 +15,24 @@
             text-align: center;
         }
 
+        #container div {
+            margin: 10px;
+        }
+
         .host {
             color: brown;
         }
 
         .player1 {
             color: green;
+        }
+
+        .player2 {
+            color: blue;
+        }
+
+        .player3 {
+            color: rgb(9, 14, 9);
         }
     </style>
 </head>
@@ -88,6 +100,21 @@
                 },
                 function () {
                     host.send('begin');
+                },
+                function () {
+                    host.send('play', "1");
+                },
+                function () {
+                    host.send('play', "1");
+                },
+                function () {
+                    p1.send('play', "1");
+                },
+                function () {
+                    p2.send('play', "1");
+                },
+                function () {
+                    p3.send('play', "1");
                 },
                 function () {
                     host.send('play', "1");

@@ -5,15 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
 type game struct {
-	State   int
-	Clients []*Client
-	Deck    []*card
-	table   []*card
-	turn    int
+	State     int
+	Clients   []*Client
+	Deck      []*card
+	table     []*card
+	firstCard int
 }
 
 const (
@@ -56,17 +57,34 @@ func (g *game) Start() {
 
 	g.Deck = cardsShuffle()
 
-	// cards, _ := json.Marshal(g.Deck)
-	// fmt.Println(string(cards))
-
 	for _, client := range g.Clients {
 		client.cards = append(client.cards, g.Deck[len(g.Deck)-4:]...)
 		g.Deck = g.Deck[:len(g.Deck)-4]
 		cards, _ := json.Marshal(client.cards)
+		client.Send <- &message{Action: "possition", Data: strconv.Itoa(client.position)}
 		client.Send <- &message{Action: "cards", Data: string(cards)}
 	}
 
+	// client that will server
+	g.firstCard = 0
+
 	fmt.Println(len(g.Deck))
+}
+
+func (g *game) isCut(card *card) bool {
+	if card.Number == "7" {
+		return true
+	}
+
+	if len(g.Clients)%3 == 0 && card.Number == "8" {
+		return true
+	}
+
+	if g.table[0].Number == card.Number {
+		return true
+	}
+
+	return false
 }
 
 var deck = []*card{
