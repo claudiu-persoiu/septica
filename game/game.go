@@ -50,7 +50,16 @@ func (g *game) notifyClients(m *message) {
 	}
 }
 
-func (g *game) Start() {
+func (g *game) Start(client *Client) error {
+
+	if g.State != WAITING {
+		return errors.New("started")
+	}
+
+	if g.Clients[0] != client {
+		return errors.New("not host")
+	}
+
 	g.State = STARTED
 
 	fmt.Println("started game")
@@ -69,6 +78,39 @@ func (g *game) Start() {
 	g.firstCard = 0
 
 	fmt.Println(len(g.Deck))
+
+	return nil
+}
+
+func (g *game) play(client *Client, cardIndex int) error {
+
+	if err := g.validTurn(client); err != nil {
+		return err
+	}
+
+	card := client.cards[cardIndex]
+
+	// see if the card is available to the client
+	if card == nil {
+		return errors.New("card unavailable")
+	}
+
+	tableLen := len(g.table)
+	if tableLen > 0 && tableLen%len(g.Clients) == 0 {
+		if !g.isCut(card) {
+			return errors.New("this card is not a valid cut")
+		}
+	}
+
+	g.table = append(g.table, card)
+	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
+
+	g.notifyClientsTableUpdate()
+
+	// if there are enough cards on the table we should check who's hand it is
+	// the host should be able to cut or clear table
+
+	return nil
 }
 
 func (g *game) isCut(card *card) bool {

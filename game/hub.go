@@ -73,22 +73,11 @@ func (h *Hub) join(gameKey string, client *Client) error {
 
 func (h *Hub) begin(client *Client) error {
 	g, err := getGameFromClient(h, client)
-
 	if err != nil {
-		return errors.New("game not found")
+		return err
 	}
 
-	if g.State != WAITING {
-		return errors.New("started")
-	}
-
-	if g.Clients[0] != client {
-		return errors.New("not host")
-	}
-
-	g.Start()
-
-	return nil
+	return g.Start(client)
 }
 
 func (h *Hub) play(client *Client, cardIndex int) error {
@@ -97,33 +86,7 @@ func (h *Hub) play(client *Client, cardIndex int) error {
 		return err
 	}
 
-	if err := g.validTurn(client); err != nil {
-		return err
-	}
-
-	card := client.cards[cardIndex]
-
-	// see if the card is available to the client
-	if card == nil {
-		return errors.New("card unavailable")
-	}
-
-	tableLen := len(g.table)
-	if tableLen > 0 && tableLen%len(g.Clients) == 0 {
-		if !g.isCut(card) {
-			return errors.New("this card is not a valid cut")
-		}
-	}
-
-	g.table = append(g.table, card)
-	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
-
-	g.notifyClientsTableUpdate()
-
-	// if there are enough cards on the table we should check who's hand it is
-	// the host should be able to cut or clear table
-
-	return nil
+	return g.play(client, cardIndex)
 }
 
 func (h *Hub) fetchHand(client *Client) error {
