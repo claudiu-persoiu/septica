@@ -14,8 +14,10 @@ import (
 // Client - Game client
 type Client struct {
 	connection *websocket.Conn
+	identifer  string
 	Send       chan *message
 	hub        *Hub
+	game       *game
 	cards      []*card
 	position   int
 	points     int
@@ -35,8 +37,30 @@ func (c *Client) processMessage(m message) {
 
 	switch m.Action {
 	case "identify":
-		// identify user by m.Data
-		// if the user is already present, assing the connect of the current user to the user that is disconnected and resend the game table and cards
+		identifier := m.Data
+		client, _ := c.hub.users[identifier]
+		if client == nil {
+			c.identifer = identifier
+			c.hub.users[identifier] = c
+		} else {
+			fmt.Println("client gasit")
+			c.hub.users[identifier] = c
+			c.game = client.game
+			c.identifer = identifier
+			c.cards = client.cards
+			c.position = client.position
+			c.points = client.points
+			c.game.Clients[c.position] = c
+
+			if client.game != nil {
+				cards, _ := json.Marshal(c.game.table)
+				c.Send <- &message{Action: "table", Data: string(cards)}
+
+				cards, _ = json.Marshal(c.cards)
+				c.Send <- &message{Action: "cards", Data: string(cards)}
+			}
+		}
+
 	case "start":
 		c.hub.Start(c)
 	case "join":

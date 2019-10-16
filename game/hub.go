@@ -10,7 +10,7 @@ import (
 type Hub struct {
 	games    map[string]*game
 	Messages chan string
-	users    map[*Client]string
+	users    map[string]*Client
 }
 
 // NewHub create new Hub
@@ -18,14 +18,14 @@ func NewHub() *Hub {
 	hub := &Hub{
 		Messages: make(chan string),
 		games:    make(map[string]*game),
-		users:    make(map[*Client]string)}
+		users:    make(map[string]*Client)}
 	return hub
 }
 
 // Start start a new game
 func (h *Hub) Start(client *Client) error {
-	key, ok := h.users[client]
-	if !ok {
+	key := ""
+	if client.game == nil {
 		g := newGame()
 		key = h.registerGame(g)
 		if err := h.join(key, client); err != nil {
@@ -65,7 +65,7 @@ func (h *Hub) join(gameKey string, client *Client) error {
 	err := g.AddPlayer(client)
 
 	if err == nil {
-		h.users[client] = gameKey
+		client.game = g
 	}
 
 	return err
@@ -99,17 +99,15 @@ func (h *Hub) fetchHand(client *Client) error {
 }
 
 func getGameFromClient(h *Hub, c *Client) (*game, error) {
-	gKey, ok := h.users[c]
+	if c.identifer == "" {
+		return nil, errors.New("unidentified user")
+	}
+
+	_, ok := h.users[c.identifer]
 
 	if ok == false {
 		return nil, errors.New("invalid user in hub")
 	}
 
-	g, ok := h.games[gKey]
-
-	if ok == false {
-		return nil, errors.New("invalid user game key")
-	}
-
-	return g, nil
+	return c.game, nil
 }

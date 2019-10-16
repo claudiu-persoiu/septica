@@ -40,6 +40,7 @@ func (g *game) AddPlayer(client *Client) error {
 
 	g.Clients = append(g.Clients, client)
 	client.position = len(g.Clients) - 1
+	client.game = g
 
 	return nil
 }
