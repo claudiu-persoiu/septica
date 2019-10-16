@@ -89,12 +89,11 @@ func (g *game) play(client *Client, cardIndex int) error {
 		return err
 	}
 
-	card := client.cards[cardIndex]
-
-	// see if the card is available to the client
-	if card == nil {
+	if len(client.cards) < cardIndex {
 		return errors.New("card unavailable")
 	}
+
+	card := client.cards[cardIndex]
 
 	tableLen := len(g.table)
 	if tableLen > 0 && tableLen%len(g.Clients) == 0 {
