@@ -71,16 +71,16 @@
         $(function () {
 
             var host = communicationHandler(address, logMessage('host'));
-            host.connect();
+            host.connect("11a");
 
             var p1 = communicationHandler(address, logMessage('player1'));
-            p1.connect();
+            p1.connect("11b");
 
             var p2 = communicationHandler(address, logMessage('player2'));
-            p2.connect();
+            p2.connect("11c");
 
             var p3 = communicationHandler(address, logMessage('player3'));
-            p3.connect();
+            p3.connect("11d");
 
             var steps = [
                 function () {

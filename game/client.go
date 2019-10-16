@@ -34,6 +34,9 @@ func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
 func (c *Client) processMessage(m message) {
 
 	switch m.Action {
+	case "identify":
+		// identify user by m.Data
+		// if the user is already present, assing the connect of the current user to the user that is disconnected and resend the game table and cards
 	case "start":
 		c.hub.Start(c)
 	case "join":
@@ -92,7 +95,10 @@ var (
 )
 
 func (c *Client) waitForMsg() {
-	defer c.connection.Close()
+	defer func() {
+		c.connection.Close()
+		fmt.Println("User disconnected")
+	}()
 	for {
 		_, msg, err := c.connection.ReadMessage()
 		if err != nil {
