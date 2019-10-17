@@ -75,6 +75,12 @@
             <td id="cards-p3"></td>
         </tr>
         <tr>
+            <td id="result-host"></td>
+            <td id="result-p1"></td>
+            <td id="result-p2"></td>
+            <td id="result-p3"></td>
+        </tr>
+        <tr>
             <td>
                 <button onclick="payCard('0', 'host')">play 0</button><br />
                 <button onclick="payCard('1', 'host')">play 1</button><br />
@@ -114,7 +120,6 @@
 
         function payCard(card, label) {
             window[label].send("play", card)
-            // $('.'+label+'-card')[card].remove()
         }
 
         function logMessage(label) {
@@ -131,11 +136,14 @@
                     case "table":
                         $('#table-' + label).html(message.data);
                         break;
+                    case "result":
+                        $('#result-' + label).html(message.data);
+                        break;
                     case "cards":
                         var html = '';
                         var cards = JSON.parse(message.data)
                         for (var card of cards) {
-                            html += '<div class="'+label+'-card">'+ card.number + " - " + card.type +'</div>'
+                            html += '<div class="' + label + '-card">' + card.number + " - " + card.type + '</div>'
                         }
                         $('#cards-' + label).html(html);
                         break;
@@ -182,30 +190,6 @@
                 function () {
                     host.send('begin');
                 },
-                // function () {
-                //     host.send('play', "1");
-                // },
-                // function () {
-                //     host.send('play', "1");
-                // },
-                // function () {
-                //     p1.send('play', "1");
-                // },
-                // function () {
-                //     p2.send('play', "1");
-                // },
-                // function () {
-                //     p3.send('play', "1");
-                // },
-                // function () {
-                //     host.send('play', "1");
-                // },
-                // function () {
-                //     host.send('fetch');
-                // },
-                // function () {
-                //     console.log('end');
-                // },
             ];
 
             for (var i = 0; i < steps.length; i++) {

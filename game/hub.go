@@ -109,5 +109,9 @@ func getGameFromClient(h *Hub, c *Client) (*game, error) {
 		return nil, errors.New("invalid user in hub")
 	}
 
+	if c.game == nil {
+		return nil, errors.New("invalid game")
+	}
+
 	return c.game, nil
 }

@@ -89,7 +89,7 @@ func (g *game) play(client *Client, cardIndex int) error {
 		return err
 	}
 
-	if len(client.cards) < cardIndex {
+	if (len(client.cards) - 1) < cardIndex {
 		return errors.New("card unavailable")
 	}
 
@@ -144,7 +144,7 @@ func (g *game) validTurn(client *Client) error {
 func (g *game) getLastPlayerCut() *Client {
 	for i := len(g.table) - 1; i >= 0; i-- {
 		if g.isCut(g.table[i]) {
-			index := i % len(g.Clients)
+			index := (i + g.firstCard) % len(g.Clients)
 			return g.Clients[index]
 		}
 	}
@@ -179,9 +179,15 @@ func (g *game) fetchHand(client *Client) error {
 	// publish points?
 	g.table = []*card{}
 	g.notifyClientsTableUpdate()
+	g.notifyClients(&message{Action: "first", Data: strconv.Itoa(c.position)})
 
 	if len(g.Deck) == 0 {
 		// no more cards to deal
+		if len(g.Clients[0].cards) == 0 {
+			// the game is over
+			return g.finishGame()
+		}
+
 		return nil
 	}
 
@@ -198,6 +204,21 @@ func (g *game) fetchHand(client *Client) error {
 		cards, _ := json.Marshal(client.cards)
 		client.Send <- &message{Action: "cards", Data: string(cards)}
 	}
+
+	return nil
+}
+
+func (g *game) finishGame() error {
+	g.State = OVER
+
+	result := make(map[int]int)
+
+	for _, client := range g.Clients {
+		result[client.position] = client.points
+	}
+
+	resultsString, _ := json.Marshal(result)
+	g.notifyClients(&message{Action: "results", Data: string(resultsString)})
 
 	return nil
 }
