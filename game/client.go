@@ -43,7 +43,6 @@ func (c *Client) processMessage(m message) {
 			c.identifer = identifier
 			c.hub.users[identifier] = c
 		} else {
-			fmt.Println("client gasit")
 			c.hub.users[identifier] = c
 			c.game = client.game
 			c.identifer = identifier

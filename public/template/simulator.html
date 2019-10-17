@@ -48,9 +48,74 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="/js/communication-handler.js"></script>
+
+    <table>
+        <tr>
+            <td>Host</td>
+            <td>Player 1</td>
+            <td>Player 2</td>
+            <td>Player 3</td>
+        </tr>
+        <tr>
+            <td id="error-host"></td>
+            <td id="error-p1"></td>
+            <td id="error-p2"></td>
+            <td id="error-p3"></td>
+        </tr>
+        <tr>
+            <td id="table-host"></td>
+            <td id="table-p1"></td>
+            <td id="table-p2"></td>
+            <td id="table-p3"></td>
+        </tr>
+        <tr>
+            <td id="cards-host"></td>
+            <td id="cards-p1"></td>
+            <td id="cards-p2"></td>
+            <td id="cards-p3"></td>
+        </tr>
+        <tr>
+            <td>
+                <button onclick="payCard('0', 'host')">play 0</button><br />
+                <button onclick="payCard('1', 'host')">play 1</button><br />
+                <button onclick="payCard('2', 'host')">play 2</button><br />
+                <button onclick="payCard('3', 'host')">play 3</button>
+            </td>
+            <td>
+                <button onclick="payCard('0', 'p1')">play 0</button><br />
+                <button onclick="payCard('1', 'p1')">play 1</button><br />
+                <button onclick="payCard('2', 'p1')">play 2</button><br />
+                <button onclick="payCard('3', 'p1')">play 3</button>
+            </td>
+            <td>
+                <button onclick="payCard('0', 'p2')">play 0</button><br />
+                <button onclick="payCard('1', 'p2')">play 1</button><br />
+                <button onclick="payCard('2', 'p2')">play 2</button><br />
+                <button onclick="payCard('3', 'p2')">play 3</button>
+            </td>
+            <td>
+                <button onclick="payCard('0', 'p3')">play 0</button><br />
+                <button onclick="payCard('1', 'p3')">play 1</button><br />
+                <button onclick="payCard('2', 'p3')">play 2</button><br />
+                <button onclick="payCard('3', 'p3')">play 3</button>
+            </td>
+        </tr>
+        <tr>
+            <td><button onclick="host.send('fetch')">fetch</button></td>
+            <td><button onclick="p1.send('fetch')">fetch</button></td>
+            <td><button onclick="p2.send('fetch')">fetch</button></td>
+            <td><button onclick="p3.send('fetch')">fetch</button></td>
+        </tr>
+    </table>
+
     <script>
 
         var game = false;
+
+        function payCard(card, label) {
+            window[label].send("play", card)
+            // $('.'+label+'-card')[card].remove()
+        }
 
         function logMessage(label) {
             return function (message) {
@@ -59,27 +124,43 @@
                     game = message.data;
                 }
 
-                $('<div/>', {
-                    class: label,
-                    text: label + ": " + JSON.stringify(message)
-                }).appendTo('#container');
+                switch (message.action) {
+                    case "error":
+                        $('#error-' + label).html(message.data);
+                        break;
+                    case "table":
+                        $('#table-' + label).html(message.data);
+                        break;
+                    case "cards":
+                        var html = '';
+                        var cards = JSON.parse(message.data)
+                        for (var card of cards) {
+                            html += '<div class="'+label+'-card">'+ card.number + " - " + card.type +'</div>'
+                        }
+                        $('#cards-' + label).html(html);
+                        break;
+                }
+
+                console.log(label);
+                console.log(message);
             }
         }
 
         var address = "ws://" + window.location.host + "/ws";
+        var host, p1, p2, p3;
 
         $(function () {
 
-            var host = communicationHandler(address, logMessage('host'));
+            host = communicationHandler(address, logMessage('host'));
             host.connect("11a");
 
-            var p1 = communicationHandler(address, logMessage('player1'));
+            p1 = communicationHandler(address, logMessage('p1'));
             p1.connect("11b");
 
-            var p2 = communicationHandler(address, logMessage('player2'));
+            p2 = communicationHandler(address, logMessage('p2'));
             p2.connect("11c");
 
-            var p3 = communicationHandler(address, logMessage('player3'));
+            p3 = communicationHandler(address, logMessage('p3'));
             p3.connect("11d");
 
             var steps = [
@@ -101,30 +182,30 @@
                 function () {
                     host.send('begin');
                 },
-                function () {
-                    host.send('play', "1");
-                },
-                function () {
-                    host.send('play', "1");
-                },
-                function () {
-                    p1.send('play', "1");
-                },
-                function () {
-                    p2.send('play', "1");
-                },
-                function () {
-                    p3.send('play', "1");
-                },
-                function () {
-                    host.send('play', "1");
-                },
-                function () {
-                    host.send('fetch');
-                },
-                function () {
-                    console.log('end');
-                },
+                // function () {
+                //     host.send('play', "1");
+                // },
+                // function () {
+                //     host.send('play', "1");
+                // },
+                // function () {
+                //     p1.send('play', "1");
+                // },
+                // function () {
+                //     p2.send('play', "1");
+                // },
+                // function () {
+                //     p3.send('play', "1");
+                // },
+                // function () {
+                //     host.send('play', "1");
+                // },
+                // function () {
+                //     host.send('fetch');
+                // },
+                // function () {
+                //     console.log('end');
+                // },
             ];
 
             for (var i = 0; i < steps.length; i++) {

@@ -105,6 +105,9 @@ func (g *game) play(client *Client, cardIndex int) error {
 	g.table = append(g.table, card)
 	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
 
+	cards, _ := json.Marshal(client.cards)
+	client.Send <- &message{Action: "cards", Data: string(cards)}
+
 	g.notifyClientsTableUpdate()
 
 	// if there are enough cards on the table we should check who's hand it is
@@ -158,6 +161,10 @@ func (g *game) fetchHand(client *Client) error {
 
 	if err := g.validTurn(client); err != nil {
 		return err
+	}
+
+	if len(g.table)%len(g.Clients) != 0 {
+		return errors.New("invalid fetch")
 	}
 
 	c := g.getLastPlayerCut()
