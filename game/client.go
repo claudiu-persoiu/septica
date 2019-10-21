@@ -49,9 +49,9 @@ func (c *Client) processMessage(m message) {
 			c.cards = client.cards
 			c.position = client.position
 			c.points = client.points
-			c.game.Clients[c.position] = c
 
 			if client.game != nil {
+				c.game.Clients[c.position] = c
 				cards, _ := json.Marshal(c.game.table)
 				c.Send <- &message{Action: "table", Data: string(cards)}
 

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Sedma</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="mobile-web-app-capable" content="yes">
     <style type="text/css">
         h1 {
@@ -18,102 +19,90 @@
             /*display: none;*/
             border: 1px solid black;
         }
+
+        #error {
+            color: #EFEFEF;
+            background: red;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="header">
-    <h1>Sedma</h1>
-</div>
-<!-- 
-<div class="step" id="step-new">
-    <div class="center">
-        <div>Start?</div>
-        <button id="start-new">start new game</button>
+    <div class="header">
+        <h1>Sedma</h1>
     </div>
 
-    <div>
-        <div class="center">Join?</div>
-        <div class="center">
-            <form>
-                <input type="url" name="join_url">
-                <input type="submit" value="Go">
-            </form>
+    <div id="error"></div>
+
+    <div id="table"></div>
+
+    <div id="result"></div>
+
+    <div id="cards"></div>
+
+    <div id="game-identifier">
+        <div>
+            <button onclick="newGame()">start new</button>
+        </div>
+        <div>
+            <input id="join-identifier" type="text" />
+            <button onclick="joinGame($('#join-identifier').val())">join game</button>
         </div>
     </div>
-</div>
-
-<div class="step" id="step-start">
-    <div>
-        <div class="center">Start</div>
-        <div class="center">
-            <div>URL: <span>url</span></div>
-            <div>Share with your friends</div>
-            <div><button>start (x) payers joined</button></div>
-        </div>
-    </div>
-</div>
-
-<div class="step" id="step-joined">
-    <div>
-        <div class="center">Joined</div>
-        <div class="center">Waiting to start...</div>
-    </div>
-</div>
-
-<div class="step" id="step-game">
-    <div>
-        <div class="center">Game ON</div>
-        <div class="center">
-            <canvas style="width: 400px; height: 400px; border: 1px solid red"></canvas>
-        </div>
-    </div>
-</div>
 
 
-<div id="not-connected">Not connected. Retry?</div>
-<div>
-    <button id="action">action!</button>
-</div> -->
-<script
-        src="https://code.jquery.com/jquery-3.2.1.min.js"
-        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.4/vue.js"></script>
-<script src="/js/communication-handler.js"></script>
-<script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.4/vue.js"></script>
+    <script src="/js/communication-handler.js"></script>
+    <script>
 
-    // $(function () {
+        function handler(message) {
 
-    //     $('#step-new').show(100);
+            switch (message.action) {
+                case "error":
+                    $('#error').html(message.data);
+                    break;
+                case "table":
+                    $('#table').html(message.data);
+                    break;
+                case "result":
+                    $('#result').html(message.data);
+                    break;
+                case "cards":
+                    var html = '';
+                    var cards = JSON.parse(message.data)
+                    if (cards) {
+                        for (var card of cards) {
+                            html += '<div class="card">' + card.number + " - " + card.type + '</div>'
+                        }
+                        $('#cards').html(html);
+                    }
+                    break;
+            }
 
-    //     var communication = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
-    //         switch (message.step) {
-    //             case 1:
-    //                 console.log(message.command);
-    //                 break;
-    //         }
-    //     });
-    //     communication.connect();
+            console.log(message);
+        }
 
-    //     var communication2 = communicationHandler("ws://" + window.location.host + "/ws", function (message) {
-    //         switch (message.step) {
-    //             case 1:
-    //                 console.log(message.command);
-    //                 break;
-    //         }
-    //     });
+        function newGame() {
+            player.send('start');
+        }
 
-    //     communication2.connect();
 
-    //     $('#start-new').click(function (e) {
-    //         e.preventDefault();
-    //         communication.send(1, "start");
-    //         communication2.send(1, "start");
-    //     });
-    // });
+        function joinGame(key) {
+            joinGame.send('join', key);
+        }
 
-</script>
+        var player;
+
+        $(function () {
+            player = communicationHandler("ws://" + window.location.host + "/ws", handler);
+            player.connect();
+        })
+
+    </script>
 
 </body>
+
 </html>
