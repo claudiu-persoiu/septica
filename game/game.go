@@ -112,9 +112,6 @@ func (g *game) play(client *Client, cardIndex int) error {
 
 	g.notifyClientsTableUpdate()
 
-	// if there are enough cards on the table we should check who's hand it is
-	// the host should be able to cut or clear table
-
 	return nil
 }
 

@@ -28,6 +28,10 @@
         #game-started button {
             display: none;
         }
+
+        #table {
+            border: 1px solid black;
+        }
     </style>
 </head>
 
@@ -44,6 +48,7 @@
     <div id="result"></div>
 
     <div id="cards"></div>
+    <div><button onclick="fetchCards()">Fetch cards</button></div>
 
     <div id="game-start">
         <div>
@@ -72,19 +77,32 @@
             switch (message.action) {
                 case "error":
                     $('#error').html(message.data);
+                    $('#error').show(100);
+                    setTimeout(() => {
+                        $('#error').hide(100);
+                    }, 2000);
                     break;
                 case "table":
-                    $('#table').html(message.data);
+                    var cards = JSON.parse(message.data)
+                    if (cards) {
+                        var html = '';
+                        for (var index in cards) {
+                            var card = cards[index]
+                            html += '<div class="card">' + card.number + " - " + card.type + '</div>'
+                        }
+                        $('#table').html(html);
+                    }
                     break;
                 case "result":
                     $('#result').html(message.data);
                     break;
                 case "cards":
-                    var html = '';
                     var cards = JSON.parse(message.data)
                     if (cards) {
-                        for (var card of cards) {
-                            html += '<div class="card">' + card.number + " - " + card.type + '</div>'
+                        var html = '';
+                        for (var index in cards) {
+                            var card = cards[index]
+                            html += '<div class="card" onClick=playCard("' + index + '")>' + card.number + " - " + card.type + '</div>'
                         }
                         $('#cards').html(html);
                     }
@@ -119,6 +137,14 @@
 
         function beginGame() {
             player.send('begin');
+        }
+
+        function playCard(index) {
+            player.send('play', index);
+        }
+
+        function fetchCards() {
+            player.send('fetch');
         }
 
         var player, gameIdentifier, isHost = false;
