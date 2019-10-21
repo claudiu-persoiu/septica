@@ -31,6 +31,16 @@
 
         #table {
             border: 1px solid black;
+            margin: 10px;
+        }
+
+        #cards {
+            margin: 10px;
+        }
+
+        .card {
+            background: grey;
+            border: 1px solid black;
         }
     </style>
 </head>
@@ -109,7 +119,10 @@
                     break;
                 case "start":
                     gameIdentifier = message.data
-                    $('#game-identifier').html(gameIdentifier)
+                    var location = window.location;
+                    var html = `${location.protocol}//${location.host}/?gamekey=${gameIdentifier}`;
+                    
+                    $('#game-identifier').html(html)
                     $('#game-start').hide()
                     isHost = true
                     break;
@@ -120,7 +133,6 @@
                         $('#game-started button').show()
                     }
                     break;
-
             }
 
             console.log(message);

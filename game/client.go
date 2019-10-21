@@ -52,11 +52,17 @@ func (c *Client) processMessage(m message) {
 
 			if client.game != nil {
 				c.game.Clients[c.position] = c
-				cards, _ := json.Marshal(c.game.table)
-				c.Send <- &message{Action: "table", Data: string(cards)}
 
-				cards, _ = json.Marshal(c.cards)
-				c.Send <- &message{Action: "cards", Data: string(cards)}
+				if c.game.State == WAITING {
+					c.Send <- &message{Action: "start", Data: c.game.key}
+					c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
+				} else if c.game.State == STARTED {
+					cards, _ := json.Marshal(c.game.table)
+					c.Send <- &message{Action: "table", Data: string(cards)}
+
+					cards, _ = json.Marshal(c.cards)
+					c.Send <- &message{Action: "cards", Data: string(cards)}
+				}
 			}
 		}
 

@@ -31,6 +31,8 @@ func (h *Hub) Start(client *Client) error {
 		if err := h.join(key, client); err != nil {
 			return err
 		}
+	} else {
+		key = client.game.key
 	}
 	fmt.Println("Starting game: " + key)
 	client.Send <- &message{Action: "start", Data: key}
@@ -51,6 +53,7 @@ func randSeq(n int) string {
 func (h *Hub) registerGame(game *game) string {
 	key := randSeq(7)
 	h.games[key] = game
+	game.key = key
 
 	return key
 }

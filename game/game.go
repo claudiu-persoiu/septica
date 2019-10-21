@@ -11,6 +11,7 @@ import (
 
 type game struct {
 	State     int
+	key       string
 	Clients   []*Client
 	Deck      []*card
 	table     []*card
