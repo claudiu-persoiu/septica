@@ -66,8 +66,6 @@ func (c *Client) processMessage(m message) {
 		err := c.hub.join(m.Data, c)
 		if err != nil {
 			c.Send <- &message{Action: "join", Data: err.Error()}
-		} else {
-			c.Send <- &message{Action: "join", Data: "wait"}
 		}
 	case "begin":
 		c.hub.begin(c)

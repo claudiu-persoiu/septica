@@ -24,6 +24,10 @@
             color: #EFEFEF;
             background: red;
         }
+
+        #game-started button {
+            display: none;
+        }
     </style>
 </head>
 
@@ -41,7 +45,7 @@
 
     <div id="cards"></div>
 
-    <div id="game-identifier">
+    <div id="game-start">
         <div>
             <button onclick="newGame()">start new</button>
         </div>
@@ -49,6 +53,11 @@
             <input id="join-identifier" type="text" />
             <button onclick="joinGame($('#join-identifier').val())">join game</button>
         </div>
+    </div>
+    <div id="game-started">
+        <div id="game-identifier"></div>
+        <div id="joined-players"></div>
+        <div><button onclick="beginGame();">begin game</button></div>
     </div>
 
 
@@ -80,6 +89,20 @@
                         $('#cards').html(html);
                     }
                     break;
+                case "start":
+                    gameIdentifier = message.data
+                    $('#game-identifier').html(gameIdentifier)
+                    $('#game-start').hide()
+                    isHost = true
+                    break;
+                case "joined":
+                    var players = parseInt(message.data, 10);
+                    $('#joined-players').html(players);
+                    if (players >= 2 && isHost) {
+                        $('#game-started button').show()
+                    }
+                    break;
+
             }
 
             console.log(message);
@@ -91,10 +114,14 @@
 
 
         function joinGame(key) {
-            joinGame.send('join', key);
+            player.send('join', key);
         }
 
-        var player;
+        function beginGame() {
+            player.send('begin');
+        }
+
+        var player, gameIdentifier, isHost = false;
 
         $(function () {
             player = communicationHandler("ws://" + window.location.host + "/ws", handler);

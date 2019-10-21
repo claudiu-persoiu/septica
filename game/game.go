@@ -42,6 +42,8 @@ func (g *game) AddPlayer(client *Client) error {
 	client.position = len(g.Clients) - 1
 	client.game = g
 
+	g.notifyClients(&message{Action: "joined", Data: strconv.Itoa(len(g.Clients))})
+
 	return nil
 }
 
