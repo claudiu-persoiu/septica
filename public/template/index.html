@@ -124,14 +124,16 @@
                     
                     $('#game-identifier').html(html)
                     $('#game-start').hide()
-                    isHost = true
                     break;
                 case "joined":
                     var players = parseInt(message.data, 10);
                     $('#joined-players').html(players);
-                    if (players >= 2 && isHost) {
+                    if (players >= 2 && position === 0) {
                         $('#game-started button').show()
                     }
+                    break;
+                case "position":
+                    position = parseInt(message.data, 10);
                     break;
             }
 
@@ -140,6 +142,7 @@
 
         function newGame() {
             player.send('start');
+            position = 0;
         }
 
 
@@ -159,7 +162,7 @@
             player.send('fetch');
         }
 
-        var player, gameIdentifier, isHost = false;
+        var player, gameIdentifier, position;
 
         $(function () {
             player = communicationHandler("ws://" + window.location.host + "/ws", handler);

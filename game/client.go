@@ -53,6 +53,8 @@ func (c *Client) processMessage(m message) {
 			if client.game != nil {
 				c.game.Clients[c.position] = c
 
+				c.Send <- &message{Action: "position", Data: strconv.Itoa(c.position)}
+
 				if c.game.State == WAITING {
 					c.Send <- &message{Action: "start", Data: c.game.key}
 					c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}

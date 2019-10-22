@@ -71,6 +71,8 @@ func (h *Hub) join(gameKey string, client *Client) error {
 		client.game = g
 	}
 
+	client.Send <- &message{Action: "start", Data: g.key}
+
 	return err
 }
 
