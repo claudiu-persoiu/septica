@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 )
 
 // Hub games hub
@@ -72,6 +73,7 @@ func (h *Hub) join(gameKey string, client *Client) error {
 	}
 
 	client.Send <- &message{Action: "start", Data: g.key}
+	client.Send <- &message{Action: "position", Data: strconv.Itoa(client.position)}
 
 	return err
 }

@@ -76,12 +76,11 @@ func (g *game) Start(client *Client) error {
 		cards, _ := json.Marshal(client.cards)
 		client.Send <- &message{Action: "cards", Data: string(cards)}
 		client.Send <- &message{Action: "possition", Data: strconv.Itoa(client.position)}
+		client.Send <- &message{Action: "first", Data: strconv.Itoa(g.firstCard)}
 	}
 
 	// client that will server
 	g.firstCard = 0
-
-	fmt.Println(len(g.Deck))
 
 	return nil
 }

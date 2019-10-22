@@ -42,6 +42,10 @@
             background: grey;
             border: 1px solid black;
         }
+
+        #fetch-cards {
+            display: none;
+        }
     </style>
 </head>
 
@@ -58,7 +62,7 @@
     <div id="result"></div>
 
     <div id="cards"></div>
-    <div><button onclick="fetchCards()">Fetch cards</button></div>
+    <div id="fetch-cards"><button onclick="fetchCards()">Fetch cards</button></div>
 
     <div id="game-start">
         <div>
@@ -95,6 +99,7 @@
                 case "table":
                     var cards = JSON.parse(message.data)
                     if (cards) {
+                        cardsOnTable = cards.length;
                         var html = '';
                         for (var index in cards) {
                             var card = cards[index]
@@ -102,6 +107,15 @@
                         }
                         $('#table').html(html);
                     }
+                    $('#game-start').hide()
+                    $('#game-started').hide()
+
+                    if (isTurn() && position === first && cardsOnTable) {
+                        $('#fetch-cards').show();
+                    } else {
+                        $('#fetch-cards').hide();
+                    }
+
                     break;
                 case "result":
                     $('#result').html(message.data);
@@ -126,7 +140,7 @@
                     $('#game-start').hide()
                     break;
                 case "joined":
-                    var players = parseInt(message.data, 10);
+                    players = parseInt(message.data, 10);
                     $('#joined-players').html(players);
                     if (players >= 2 && position === 0) {
                         $('#game-started button').show()
@@ -134,6 +148,9 @@
                     break;
                 case "position":
                     position = parseInt(message.data, 10);
+                    break;
+                case "first":
+                    first = parseInt(message.data, 10);
                     break;
             }
 
@@ -144,7 +161,6 @@
             player.send('start');
             position = 0;
         }
-
 
         function joinGame(key) {
             player.send('join', key);
@@ -160,9 +176,14 @@
 
         function fetchCards() {
             player.send('fetch');
+            $('#fetch-cards').hide();
         }
 
-        var player, gameIdentifier, position;
+        function isTurn() {
+            return ((cardsOnTable+first) % players) === position;
+        }
+
+        var player, gameIdentifier, position, players, first, cardsOnTable;
 
         $(function () {
             player = communicationHandler("ws://" + window.location.host + "/ws", handler);
