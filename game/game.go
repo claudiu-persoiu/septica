@@ -177,7 +177,6 @@ func (g *game) fetchHand(client *Client) error {
 
 	// publish points?
 	g.table = []*card{}
-	g.notifyClientsTableUpdate()
 	g.notifyClients(&message{Action: "first", Data: strconv.Itoa(c.position)})
 
 	if len(g.Deck) == 0 {
@@ -204,6 +203,8 @@ func (g *game) fetchHand(client *Client) error {
 		client.Send <- &message{Action: "cards", Data: string(cards)}
 	}
 
+	g.notifyClientsTableUpdate()
+
 	return nil
 }
 
@@ -217,7 +218,7 @@ func (g *game) finishGame() error {
 	}
 
 	resultsString, _ := json.Marshal(result)
-	g.notifyClients(&message{Action: "results", Data: string(resultsString)})
+	g.notifyClients(&message{Action: "result", Data: string(resultsString)})
 
 	return nil
 }

@@ -46,6 +46,10 @@
         #fetch-cards {
             display: none;
         }
+
+        #your-turn {
+            display: none;
+        }
     </style>
 </head>
 
@@ -63,6 +67,7 @@
 
     <div id="cards"></div>
     <div id="fetch-cards"><button onclick="fetchCards()">Fetch cards</button></div>
+    <div id="your-turn">It's your turn</div>
 
     <div id="game-start">
         <div>
@@ -116,9 +121,16 @@
                         $('#fetch-cards').hide();
                     }
 
+                    if (isTurn()) {
+                        $('#your-turn').show()
+                    } else {
+                        $('#your-turn').hide()
+                    }
+
                     break;
                 case "result":
                     $('#result').html(message.data);
+                    $('#your-turn').hide()
                     break;
                 case "cards":
                     var cards = JSON.parse(message.data)
@@ -130,6 +142,7 @@
                         }
                         $('#cards').html(html);
                     }
+
                     break;
                 case "start":
                     gameIdentifier = message.data

@@ -32,7 +32,7 @@ func (h *Hub) Start(client *Client) error {
 		if err := h.join(key, client); err != nil {
 			return err
 		}
-	} else {
+	} else if client.game.State == WAITING || client.game.State == STARTED {
 		key = client.game.key
 	}
 	fmt.Println("Starting game: " + key)
