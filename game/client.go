@@ -49,23 +49,27 @@ func (c *Client) processMessage(m message) {
 			c.cards = client.cards
 			c.position = client.position
 			c.points = client.points
+		}
 
-			if client.game != nil {
-				c.game.Clients[c.position] = c
+		if c.game != nil {
+			c.game.Clients[c.position] = c
 
-				c.Send <- &message{Action: "position", Data: strconv.Itoa(c.position)}
+			c.Send <- &message{Action: "position", Data: strconv.Itoa(c.position)}
+			c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
 
-				if c.game.State == WAITING {
-					c.Send <- &message{Action: "start", Data: c.game.key}
-					c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
-				} else if c.game.State == STARTED {
-					cards, _ := json.Marshal(c.game.table)
-					c.Send <- &message{Action: "table", Data: string(cards)}
+			if c.game.State == WAITING {
+				c.Send <- &message{Action: "start", Data: c.game.key}
+			} else if c.game.State == STARTED {
+				c.Send <- &message{Action: "first", Data: strconv.Itoa(c.game.firstCard)}
 
-					cards, _ = json.Marshal(c.cards)
-					c.Send <- &message{Action: "cards", Data: string(cards)}
-				}
+				cards, _ := json.Marshal(c.game.table)
+				c.Send <- &message{Action: "table", Data: string(cards)}
+
+				cards, _ = json.Marshal(c.cards)
+				c.Send <- &message{Action: "cards", Data: string(cards)}
 			}
+		} else {
+			c.Send <- &message{Action: "nogame"}
 		}
 
 	case "start":

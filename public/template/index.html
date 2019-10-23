@@ -114,19 +114,7 @@
                     }
                     $('#game-start').hide()
                     $('#game-started').hide()
-
-                    if (isTurn() && position === first && cardsOnTable) {
-                        $('#fetch-cards').show();
-                    } else {
-                        $('#fetch-cards').hide();
-                    }
-
-                    if (isTurn()) {
-                        $('#your-turn').show()
-                    } else {
-                        $('#your-turn').hide()
-                    }
-
+                    toggleTurn();
                     break;
                 case "result":
                     $('#result').html(message.data);
@@ -142,13 +130,13 @@
                         }
                         $('#cards').html(html);
                     }
-
+                    toggleTurn();
                     break;
                 case "start":
                     gameIdentifier = message.data
                     var location = window.location;
                     var html = `${location.protocol}//${location.host}/?gamekey=${gameIdentifier}`;
-                    
+
                     $('#game-identifier').html(html)
                     $('#game-start').hide()
                     break;
@@ -164,6 +152,11 @@
                     break;
                 case "first":
                     first = parseInt(message.data, 10);
+                    break;
+                case "nogame":
+                    var url = new URL(window.location.href);
+                    var gameIdentifier = url.searchParams.get('gamekey');
+                    joinGame(gameIdentifier);
                     break;
             }
 
@@ -192,8 +185,23 @@
             $('#fetch-cards').hide();
         }
 
+        function toggleTurn() {
+            var turn = isTurn();
+            if (turn) {
+                $('#your-turn').show()
+            } else {
+                $('#your-turn').hide()
+            }
+
+            if (turn && first === position && cardsOnTable > 0) {
+                $('#fetch-cards').show();
+            } else {
+                $('#fetch-cards').hide();
+            }
+        }
+
         function isTurn() {
-            return ((cardsOnTable+first) % players) === position;
+            return ((cardsOnTable + first) % players) === position;
         }
 
         var player, gameIdentifier, position, players, first, cardsOnTable;
