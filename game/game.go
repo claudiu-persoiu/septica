@@ -22,6 +22,7 @@ const (
 	WAITING = 0
 	STARTED = 1
 	OVER    = 2
+	BROKEN  = 3
 )
 
 func newGame() *game {
@@ -56,7 +57,7 @@ func (g *game) notifyClients(m *message) {
 
 func (g *game) Start(client *Client) error {
 
-	if g.State != WAITING {
+	if g.State != WAITING && g.State != OVER {
 		return errors.New("started")
 	}
 
@@ -72,6 +73,7 @@ func (g *game) Start(client *Client) error {
 
 	for _, client := range g.Clients {
 		client.cards = append(client.cards, g.Deck[len(g.Deck)-4:]...)
+		client.points = 0
 		g.Deck = g.Deck[:len(g.Deck)-4]
 		cards, _ := json.Marshal(client.cards)
 		client.Send <- &message{Action: "cards", Data: string(cards)}
@@ -210,6 +212,11 @@ func (g *game) fetchHand(client *Client) error {
 func (g *game) finishGame() error {
 	g.State = OVER
 
+	g.notifyClients(g.getResultMessage())
+	return nil
+}
+
+func (g *game) getResultMessage() *message {
 	result := make(map[int]int)
 
 	for _, client := range g.Clients {
@@ -217,9 +224,27 @@ func (g *game) finishGame() error {
 	}
 
 	resultsString, _ := json.Marshal(result)
-	g.notifyClients(&message{Action: "result", Data: string(resultsString)})
+	return &message{Action: "result", Data: string(resultsString)}
+}
+
+func (g *game) leave() error {
+	g.notifyClients(&message{Action: "left"})
+
+	for _, client := range g.Clients {
+		client.game = nil
+		client.points = 0
+		client.cards = nil
+		client.identifer = ""
+	}
+
+	g.State = BROKEN
 
 	return nil
+}
+
+func (g *game) restart(client *Client) error {
+	g.notifyClients(&message{Action: "restarting"})
+	return g.Start(client)
 }
 
 var deck = []*card{

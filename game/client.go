@@ -67,6 +67,8 @@ func (c *Client) processMessage(m message) {
 
 				cards, _ = json.Marshal(c.cards)
 				c.Send <- &message{Action: "cards", Data: string(cards)}
+			} else if c.game.State == OVER {
+				c.Send <- c.game.getResultMessage()
 			}
 		} else {
 			c.Send <- &message{Action: "nogame"}
@@ -80,7 +82,10 @@ func (c *Client) processMessage(m message) {
 			c.Send <- &message{Action: "join", Data: err.Error()}
 		}
 	case "begin":
-		c.hub.begin(c)
+		err := c.hub.begin(c)
+		if err != nil {
+			c.Send <- &message{Action: "error", Data: err.Error()}
+		}
 	case "play":
 		i, err := strconv.Atoi(m.Data)
 		if err != nil {
@@ -98,6 +103,10 @@ func (c *Client) processMessage(m message) {
 			fmt.Println(err)
 			c.Send <- &message{Action: "error", Data: err.Error()}
 		}
+	case "leave":
+		c.hub.leave(c)
+	case "restart":
+		c.hub.restartGame(c)
 	default:
 		c.Send <- &message{Action: "error", Data: "invalid command"}
 	}

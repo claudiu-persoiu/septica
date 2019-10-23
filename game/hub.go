@@ -105,6 +105,32 @@ func (h *Hub) fetchHand(client *Client) error {
 	return g.fetchHand(client)
 }
 
+func (h *Hub) leave(client *Client) error {
+	g, err := getGameFromClient(h, client)
+	if err != nil {
+		return err
+	}
+
+	err = g.leave()
+
+	if err != nil {
+		return err
+	}
+
+	delete(h.games, g.key)
+
+	return nil
+}
+
+func (h *Hub) restartGame(client *Client) error {
+	g, err := getGameFromClient(h, client)
+	if err != nil {
+		return err
+	}
+
+	return g.restart(client)
+}
+
 func getGameFromClient(h *Hub, c *Client) (*game, error) {
 	if c.identifer == "" {
 		return nil, errors.New("unidentified user")

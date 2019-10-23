@@ -50,6 +50,20 @@
         #your-turn {
             display: none;
         }
+
+        .self {
+            font-weight: bold;
+        }
+
+        #leave-game {
+            display: none;
+            margin-top: 50px;
+        }
+
+        #restart {
+            display: none;
+            ;
+        }
     </style>
 </head>
 
@@ -84,6 +98,14 @@
         <div><button onclick="beginGame();">begin game</button></div>
     </div>
 
+    <div id="restart">
+        <button onclick="restart();">Restart game</button>
+    </div>
+
+    <div id="leave-game">
+        <button onclick="leave();">Leave game</button>
+    </div>
+
 
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
@@ -94,11 +116,7 @@
 
             switch (message.action) {
                 case "error":
-                    $('#error').html(message.data);
-                    $('#error').show(100);
-                    setTimeout(() => {
-                        $('#error').hide(100);
-                    }, 2000);
+                    displayError(message.data);
                     break;
                 case "table":
                     var cards = JSON.parse(message.data)
@@ -116,8 +134,33 @@
                     toggleTurn();
                     break;
                 case "result":
-                    $('#result').html(message.data);
-                    $('#your-turn').hide()
+                    var results = JSON.parse(message.data);
+                    var res = '';
+                    var max = 0;
+                    var winners = [];
+
+                    for (var player in results) {
+                        if (results[player] > max) {
+                            max = results[player];
+                            winners = [player]
+                        } else if (results[player] == max) {
+                            winners.push(player)
+                        }
+                    }
+
+                    for (var player in results) {
+                        res += `<div class="${player == position ? 'self' : ''}">
+                                Player ${parseInt(player, 10) + 1}: ${results[player]} ${winners.includes(player) == true ? 'Won!' : ''}
+                            </div>`;
+                    }
+                    $('#result').html(res);
+                    $('#your-turn').hide();
+                    $('#game-start').hide();
+                    $('#game-started').hide();
+                    $('#leave-game').show()
+                    if (position === 0) {
+                        $('#restart').show();
+                    }
                     break;
                 case "cards":
                     var cards = JSON.parse(message.data)
@@ -125,7 +168,7 @@
                         var html = '';
                         for (var index in cards) {
                             var card = cards[index]
-                            html += '<div class="card" onClick=playCard("' + index + '")>' + card.number + " - " + card.type + '</div>'
+                            html += `<div class="card" onClick=playCard("${index}")>${card.number} - ${card.type}</div>`;
                         }
                         $('#cards').html(html);
                     }
@@ -145,21 +188,46 @@
                     if (players >= 2 && position === 0) {
                         $('#game-started button').show()
                     }
+                    $('#leave-game').show();
+                    $('#join-identifier').val('');
                     break;
                 case "position":
                     position = parseInt(message.data, 10);
                     break;
                 case "first":
                     first = parseInt(message.data, 10);
+                    toggleTurn();
                     break;
                 case "nogame":
                     var url = new URL(window.location.href);
                     var gameIdentifier = url.searchParams.get('gamekey');
-                    joinGame(gameIdentifier);
+                    if (gameIdentifier) {
+                        joinGame(gameIdentifier);
+                    }
+                    break;
+                case "left":
+                    gameIdentifier = null
+
+                    $('#game-identifier').html('')
+                    $('#game-start').show()
+                    $('#game-started').hide()
+                    $('#leave-game').hide()
+                    break;
+                case "restarting":
+                    $('#result').html('');
+                    $('#restart').hide();
                     break;
             }
 
             console.log(message);
+        }
+
+        function displayError(error) {
+            $('#error').html(error);
+            $('#error').show(100);
+            setTimeout(() => {
+                $('#error').hide(100);
+            }, 2000);
         }
 
         function newGame() {
@@ -201,6 +269,16 @@
 
         function isTurn() {
             return ((cardsOnTable + first) % players) === position;
+        }
+
+        function leave() {
+            if (confirm('Really leave game?')) {
+                player.send('leave')
+            }
+        }
+
+        function restart() {
+            player.send('restart');
         }
 
         var player, gameIdentifier, position, players, first, cardsOnTable;
