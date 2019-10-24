@@ -66,6 +66,7 @@ func (g *game) Start(client *Client) error {
 	}
 
 	g.State = STARTED
+	g.table = nil
 
 	fmt.Println("started game")
 
@@ -83,6 +84,7 @@ func (g *game) Start(client *Client) error {
 
 	// client that will server
 	g.firstCard = 0
+	g.notifyClientsTableUpdate()
 
 	return nil
 }
