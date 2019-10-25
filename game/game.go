@@ -236,7 +236,6 @@ func (g *game) leave() error {
 		client.game = nil
 		client.points = 0
 		client.cards = nil
-		client.identifer = ""
 	}
 
 	g.State = BROKEN

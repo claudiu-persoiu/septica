@@ -39,13 +39,12 @@ func (c *Client) processMessage(m message) {
 	case "identify":
 		identifier := m.Data
 		client, _ := c.hub.users[identifier]
-		if client == nil {
-			c.identifer = identifier
-			c.hub.users[identifier] = c
-		} else {
-			c.hub.users[identifier] = c
+
+		c.hub.users[identifier] = c
+		c.identifer = identifier
+
+		if client != nil {
 			c.game = client.game
-			c.identifer = identifier
 			c.cards = client.cards
 			c.position = client.position
 			c.points = client.points
@@ -56,10 +55,12 @@ func (c *Client) processMessage(m message) {
 
 			c.Send <- &message{Action: "position", Data: strconv.Itoa(c.position)}
 			c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
+			c.Send <- &message{Action: "start", Data: c.game.key}
 
-			if c.game.State == WAITING {
-				c.Send <- &message{Action: "start", Data: c.game.key}
-			} else if c.game.State == STARTED {
+			// if c.game.State == WAITING {
+			// 	c.Send <- &message{Action: "start", Data: c.game.key}
+			// } else
+			if c.game.State == STARTED {
 				c.Send <- &message{Action: "first", Data: strconv.Itoa(c.game.firstCard)}
 
 				cards, _ := json.Marshal(c.game.table)
@@ -68,6 +69,9 @@ func (c *Client) processMessage(m message) {
 				cards, _ = json.Marshal(c.cards)
 				c.Send <- &message{Action: "cards", Data: string(cards)}
 			} else if c.game.State == OVER {
+				cards, _ := json.Marshal(c.game.table)
+				c.Send <- &message{Action: "table", Data: string(cards)}
+
 				c.Send <- c.game.getResultMessage()
 			}
 		} else {
@@ -93,14 +97,12 @@ func (c *Client) processMessage(m message) {
 		} else {
 			err := c.hub.play(c, i)
 			if err != nil {
-				fmt.Println(err)
 				c.Send <- &message{Action: "error", Data: err.Error()}
 			}
 		}
 	case "fetch":
 		err := c.hub.fetchHand(c)
 		if err != nil {
-			fmt.Println(err)
 			c.Send <- &message{Action: "error", Data: err.Error()}
 		}
 	case "leave":
