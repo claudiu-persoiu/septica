@@ -121,7 +121,7 @@
                 case "table":
                     var cards = JSON.parse(message.data)
                     if (cards) {
-                        cardsOnTable = cards.length;
+                        state.cardsOnTable = cards.length;
                         var html = '';
                         for (var index in cards) {
                             var card = cards[index]
@@ -131,7 +131,6 @@
                     }
                     $('#game-start').hide()
                     $('#game-started').hide()
-                    toggleTurn();
                     break;
                 case "result":
                     var results = JSON.parse(message.data);
@@ -149,7 +148,7 @@
                     }
 
                     for (var connection in results) {
-                        res += `<div class="${connection == position ? 'self' : ''}">
+                        res += `<div class="${connection == state.position ? 'self' : ''}">
                                 Player ${parseInt(connection, 10) + 1}: ${results[connection]} ${winners.includes(connection) == true ? 'Won!' : ''}
                             </div>`;
                     }
@@ -158,7 +157,7 @@
                     $('#game-start').hide();
                     $('#game-started').hide();
                     $('#leave-game').show()
-                    if (position === 0) {
+                    if (state.position === 0) {
                         $('#restart').show();
                     }
                     break;
@@ -172,32 +171,18 @@
                         }
                         $('#cards').html(html);
                     }
-                    toggleTurn();
                     break;
                 case "start":
-                    gameIdentifier = message.data
-                    var location = window.location;
-                    var html = `${location.protocol}//${location.host}/?gamekey=${gameIdentifier}`;
-
-                    $('#game-identifier').html(html)
-                    $('#game-started').show()
-                    $('#game-start').hide()
+                    state.gameIdentifier = message.data
                     break;
                 case "joined":
-                    players = parseInt(message.data, 10);
-                    $('#joined-players').html(players);
-                    if (players >= 2 && position === 0) {
-                        $('#game-started button').show()
-                    }
-                    $('#leave-game').show();
-                    $('#join-identifier').val('');
+                    state.players = parseInt(message.data, 10);
                     break;
                 case "position":
-                    position = parseInt(message.data, 10);
+                    state.position = parseInt(message.data, 10);
                     break;
                 case "first":
-                    first = parseInt(message.data, 10);
-                    toggleTurn();
+                    state.first = parseInt(message.data, 10);
                     break;
                 case "nogame":
                     var url = new URL(window.location.href);
@@ -207,12 +192,8 @@
                     }
                     break;
                 case "left":
-                    gameIdentifier = null
-
-                    $('#game-identifier').html('')
-                    $('#game-start').show()
-                    $('#game-started').hide()
-                    $('#leave-game').hide()
+                    state.gameIdentifier = null
+                    displayError('Broken game, a player has left the game')
                     break;
                 case "restarting":
                     $('#result').html('');
@@ -233,7 +214,7 @@
 
         function newGame() {
             connection.send('start');
-            position = 0;
+            state.position = 0;
         }
 
         function joinGame(key) {
@@ -253,24 +234,19 @@
             $('#fetch-cards').hide();
         }
 
-        function toggleTurn() {
-            var turn = isTurn();
-            if (turn) {
-                $('#your-turn').show()
-            } else {
-                $('#your-turn').hide()
-            }
+        // function toggleTurn() {
+        //     if (state.turn) {
+        //         $('#your-turn').show()
+        //     } else {
+        //         $('#your-turn').hide()
+        //     }
 
-            if (turn && first === position && cardsOnTable > 0) {
-                $('#fetch-cards').show();
-            } else {
-                $('#fetch-cards').hide();
-            }
-        }
-
-        function isTurn() {
-            return ((cardsOnTable + first) % players) === position;
-        }
+        //     if (state.turn && state.first === state.position && state.cardsOnTable > 0) {
+        //         $('#fetch-cards').show();
+        //     } else {
+        //         $('#fetch-cards').hide();
+        //     }
+        // }
 
         function leave() {
             if (confirm('Really leave game?')) {
@@ -282,7 +258,89 @@
             connection.send('restart');
         }
 
-        var connection, gameIdentifier, position, players, first, cardsOnTable;
+        const state = (() => {
+            const interceptors = {}
+            const state = {}
+
+            var handler = {
+                set: (obj, prop, newVal) => {
+                    obj[prop] = newVal;
+                    if (interceptors[prop]) {
+                        for (const callback of interceptors[prop]) {
+                            callback(obj)
+                        }
+                    }
+
+                    return newVal;
+                },
+                get: (obj, prop) => {
+                    if (prop === 'attach') {
+                        return (...args) => {
+                            if (!interceptors[args[0]]) {
+                                interceptors[args[0]] = []
+                            }
+
+                            interceptors[args[0]].push(args[1])
+                        }
+                    }
+                    return obj[prop];
+                }
+            }
+
+            return new Proxy(state, handler)
+        })()
+
+        state.attach('gameIdentifier', (obj) => {
+            if (obj.gameIdentifier) {
+                var location = window.location;
+                var html = `${location.protocol}//${location.host}/?gamekey=${obj.gameIdentifier}`;
+
+                $('#game-identifier').html(html)
+                $('#game-started').show()
+                $('#game-start').hide()
+            } else {
+                $('#game-identifier').html('')
+                $('#game-start').show()
+                $('#game-started').hide()
+                $('#leave-game').hide()
+                $('#cards').hide()
+                $('#table').html('')
+            }
+        });
+
+        state.attach('players', (state) => {
+            $('#joined-players').html(state.players);
+            if (state.players >= 2 && state.position === 0) {
+                $('#game-started button').show()
+            }
+            $('#leave-game').show();
+            $('#join-identifier').val('');
+        })
+
+        const turnCalculator = (obj) => {
+            state.turn = ((obj.cardsOnTable + obj.first) % obj.players) === obj.position;
+        }
+
+        state.attach('cardsOnTable', turnCalculator);
+        state.attach('first', turnCalculator);
+        state.attach('players', turnCalculator);
+        state.attach('position', turnCalculator);
+
+        state.attach('turn', (state) => {
+            if (state.turn) {
+                $('#your-turn').show()
+            } else {
+                $('#your-turn').hide()
+            }
+
+            if (state.turn && state.first === state.position && state.cardsOnTable > 0) {
+                $('#fetch-cards').show();
+            } else {
+                $('#fetch-cards').hide();
+            }
+        })
+
+        var connection;
 
         $(function () {
             connection = communicationHandler("ws://" + window.location.host + "/ws", handler);
