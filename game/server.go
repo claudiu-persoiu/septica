@@ -21,6 +21,7 @@ func NewServer() (*Server, error) {
 	router.Handle("/", http.HandlerFunc(server.pageHandler))
 	router.Handle("/simulator", http.HandlerFunc(server.simulatorHandler))
 	router.Handle("/js/", http.FileServer(http.Dir("public")))
+	router.Handle("/images/", http.FileServer(http.Dir("public")))
 	router.Handle("/ws", http.HandlerFunc(server.webSocket))
 
 	server.handler = router

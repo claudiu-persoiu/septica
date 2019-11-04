@@ -32,19 +32,44 @@
         #table {
             border: 1px solid black;
             margin: 10px;
+            background-color: green;
+            padding: 20px;
+            text-align: center;
         }
 
         #cards {
             margin: 10px;
+            text-align: center;
         }
 
         .card {
-            background: grey;
-            border: 1px solid black;
+            background: #EFEFEF;
+            border: 1.5px solid black;
+            width: 100px;
+            height: 180px;
+            position: relative;
+            margin: 10px -20px;
+            display: inline-block;
+            border-radius: 10px;
+            background-repeat: no-repeat;
+            background-position: center;
+            font-size: 30px;
+            padding-top: 17px;
         }
 
         #fetch-cards {
             display: none;
+            text-align: center;
+        }
+
+        #fetch-cards button {
+            width: 200px;
+            height: 30px;
+            border-radius: 20px;
+            border: 1px solid green;
+            color: white;
+            background-color: green;
+            font-size: 16px;
         }
 
         #your-turn {
@@ -57,17 +82,46 @@
 
         #leave-game {
             display: none;
-            margin-top: 50px;
+            float: right;
+            position: absolute;
+            right: 15px;
+        }
+
+        #leave-game button {
+            border-radius: 15px;
+            border: 1px solid #ccc;
+            background-color: #efefef;
+            font-size: 15px;
+            padding: 6px 15px;
+
         }
 
         #restart {
             display: none;
-            ;
+        }
+
+        .clubs {
+            background-image: url("/images/clubs.png");
+        }
+
+        .diamond {
+            background-image: url("/images/diamond.png");
+        }
+
+        .hearts {
+            background-image: url("/images/hearts.png");
+        }
+
+        .spades {
+            background-image: url("/images/spades.png");
         }
     </style>
 </head>
 
 <body>
+    <div id="leave-game">
+        <button onclick="leave();">Leave game</button>
+    </div>
 
     <div class="header">
         <h1>Sedma</h1>
@@ -102,11 +156,6 @@
         <button onclick="restart();">Restart game</button>
     </div>
 
-    <div id="leave-game">
-        <button onclick="leave();">Leave game</button>
-    </div>
-
-
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="/js/communication-handler.js"></script>
@@ -125,7 +174,7 @@
                         var html = '';
                         for (var index in cards) {
                             var card = cards[index]
-                            html += '<div class="card">' + card.number + " - " + card.type + '</div>'
+                            html += `<div class="card ${card.type}">${card.number}</div>`;
                         }
                         $('#table').html(html);
                     }
@@ -167,7 +216,7 @@
                         var html = '';
                         for (var index in cards) {
                             var card = cards[index]
-                            html += `<div class="card" onClick=playCard("${index}")>${card.number} - ${card.type}</div>`;
+                            html += `<div class="card ${card.type}" onClick=playCard("${index}")>${card.number}</div>`;
                         }
                         $('#cards').html(html);
                     }
@@ -233,20 +282,6 @@
             connection.send('fetch');
             $('#fetch-cards').hide();
         }
-
-        // function toggleTurn() {
-        //     if (state.turn) {
-        //         $('#your-turn').show()
-        //     } else {
-        //         $('#your-turn').hide()
-        //     }
-
-        //     if (state.turn && state.first === state.position && state.cardsOnTable > 0) {
-        //         $('#fetch-cards').show();
-        //     } else {
-        //         $('#fetch-cards').hide();
-        //     }
-        // }
 
         function leave() {
             if (confirm('Really leave game?')) {
