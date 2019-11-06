@@ -67,6 +67,8 @@ func (g *game) Start(client *Client) error {
 
 	g.State = STARTED
 	g.table = nil
+	// client that will server
+	g.firstCard = 0
 
 	fmt.Println("started game")
 
@@ -82,8 +84,6 @@ func (g *game) Start(client *Client) error {
 		client.Send <- &message{Action: "first", Data: strconv.Itoa(g.firstCard)}
 	}
 
-	// client that will server
-	g.firstCard = 0
 	g.notifyClientsTableUpdate()
 
 	return nil
