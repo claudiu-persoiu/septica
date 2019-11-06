@@ -65,6 +65,10 @@ func (g *game) Start(client *Client) error {
 		return errors.New("not host")
 	}
 
+	if len(g.Clients) < 2 {
+		return errors.New("not enough players")
+	}
+
 	g.State = STARTED
 	g.table = nil
 	// client that will server
