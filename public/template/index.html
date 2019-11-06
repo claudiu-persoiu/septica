@@ -322,6 +322,7 @@
                     }
                     break;
                 case "left":
+                    state.numberOfPlayers = 0;
                     state.gameInProgress = false;
                     state.gameIdentifier = null
                     displayError('Broken game, a player has left the game')
@@ -458,6 +459,7 @@
             if (obj.gameInProgress) {
                 $('#game-start').hide()
                 $('#game-started').hide()
+                $('#game-started button').hide()
                 $('.turn').removeClass('turn');
                 state.players = [];
                 let labels = [];
