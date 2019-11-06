@@ -25,6 +25,36 @@
             background: red;
         }
 
+        .overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .overlay .content {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            background: #EFEFEF;
+            padding: 20px;
+            border-radius: 5px;
+            padding: 50px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        #game-started {
+            display: none;
+        }
+
         #game-started button {
             display: none;
         }
@@ -35,6 +65,7 @@
             background-color: green;
             padding: 20px;
             text-align: center;
+            min-height: 220px;
         }
 
         #cards {
@@ -72,10 +103,6 @@
             font-size: 16px;
         }
 
-        #your-turn {
-            display: none;
-        }
-
         .self {
             font-weight: bold;
         }
@@ -87,13 +114,14 @@
             right: 15px;
         }
 
-        #leave-game button {
-            border-radius: 15px;
-            border: 1px solid #ccc;
-            background-color: #efefef;
+        #leave-game a {
             font-size: 15px;
             padding: 6px 15px;
 
+        }
+
+        #result-overlay {
+            display: none;
         }
 
         #restart {
@@ -115,12 +143,41 @@
         .spades {
             background-image: url("/images/spades.png");
         }
+
+        #join-identifier {
+            height: 34px;
+            border: 1px solid #cccccc;
+            padding-left: 8px;
+        }
+
+        .button {
+            font-size: 14px;
+            height: 38px;
+            color: white;
+            background-color: #4267B2;
+            border: 0px;
+            border-radius: 2px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .players {
+            width: 100%;
+        }
+
+        .tac {
+            text-align: center;
+        }
+
+        .turn {
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
     <div id="leave-game">
-        <button onclick="leave();">Leave game</button>
+        <a href="#" onclick="leave(); return false;">quit game</a>
     </div>
 
     <div class="header">
@@ -129,31 +186,50 @@
 
     <div id="error"></div>
 
+    <table class="players tac">
+        <tbody>
+            <tr>
+                <td id="playerLabel2"></td>
+                <td id="playerLabel3"></td>
+                <td id="playerLabel4"></td>
+            </tr>
+        </tbody>
+    </table>
     <div id="table"></div>
-
-    <div id="result"></div>
-
+    <div class="tac" id="playerLabel1"></div>
     <div id="cards"></div>
     <div id="fetch-cards"><button onclick="fetchCards()">Fetch cards</button></div>
-    <div id="your-turn">It's your turn</div>
 
-    <div id="game-start">
-        <div>
-            <button onclick="newGame()">start new</button>
-        </div>
-        <div>
-            <input id="join-identifier" type="text" />
-            <button onclick="joinGame($('#join-identifier').val())">join game</button>
+    <div id="game-start" class="overlay">
+        <div class="content">
+            <div class="new">
+                <button onclick="newGame()" class="button">start new game</button>
+            </div>
+            <div style="margin: 20px;">or</div>
+            <div class="join">
+                <input id="join-identifier" type="text" placeholder="Game identifer" />
+                <button onclick="joinGame($('#join-identifier').val())" class="button">join game</button>
+            </div>
         </div>
     </div>
-    <div id="game-started">
-        <div id="game-identifier"></div>
-        <div id="joined-players"></div>
-        <div><button onclick="beginGame();">begin game</button></div>
+    <div id="game-started" class="overlay">
+        <div class="content">
+            <div>Share with other players:</div>
+            <div><a href="#" id="game-identifier" onclick="copyGameIdentifierToClipboard(); return false;"></a></div>
+            <p>Joined players: <span id="joined-players"></span></p>
+            <p><button onclick="beginGame();" class="button">begin game</button>
+                <p><a href="#" onclick="leave(); return false;" style="font-size: 14px;">quit game</a></p>
+        </div>
     </div>
 
-    <div id="restart">
-        <button onclick="restart();">Restart game</button>
+    <div id="result-overlay" class="overlay">
+        <div class="content">
+            <p>Game results:</p>
+            <div id="result"></div>
+            <p id="restart">
+                <button onclick="restart();" class="button">Restart game</button>
+            </p>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
@@ -163,31 +239,34 @@
 
         function handler(message) {
 
+            let cards;
+
             switch (message.action) {
                 case "error":
                     displayError(message.data);
                     break;
                 case "table":
-                    var cards = JSON.parse(message.data)
+                    cards = JSON.parse(message.data)
                     if (cards) {
                         state.cardsOnTable = cards.length;
-                        var html = '';
-                        for (var index in cards) {
-                            var card = cards[index]
+                        let html = '';
+                        for (const index in cards) {
+                            const card = cards[index]
                             html += `<div class="card ${card.type}">${card.number}</div>`;
                         }
                         $('#table').html(html);
+                    } else {
+                        state.cardsOnTable = 0;
                     }
-                    $('#game-start').hide()
-                    $('#game-started').hide()
+
                     break;
                 case "result":
-                    var results = JSON.parse(message.data);
-                    var res = '';
-                    var max = 0;
-                    var winners = [];
+                    const results = JSON.parse(message.data);
+                    let res = '';
+                    let max = 0;
+                    let winners = [];
 
-                    for (var connection in results) {
+                    for (const connection in results) {
                         if (results[connection] > max) {
                             max = results[connection];
                             winners = [connection]
@@ -196,36 +275,38 @@
                         }
                     }
 
-                    for (var connection in results) {
+                    for (let connection in results) {
                         res += `<div class="${connection == state.position ? 'self' : ''}">
                                 Player ${parseInt(connection, 10) + 1}: ${results[connection]} ${winners.includes(connection) == true ? 'Won!' : ''}
                             </div>`;
                     }
                     $('#result').html(res);
-                    $('#your-turn').hide();
+                    $('#result-overlay').show();
                     $('#game-start').hide();
                     $('#game-started').hide();
                     $('#leave-game').show()
                     if (state.position === 0) {
                         $('#restart').show();
                     }
+                    state.gameInProgress = false;
                     break;
                 case "cards":
-                    var cards = JSON.parse(message.data)
+                    cards = JSON.parse(message.data)
                     if (cards) {
-                        var html = '';
-                        for (var index in cards) {
-                            var card = cards[index]
+                        let html = '';
+                        for (const index in cards) {
+                            const card = cards[index]
                             html += `<div class="card ${card.type}" onClick=playCard("${index}")>${card.number}</div>`;
                         }
                         $('#cards').html(html);
+                        $('#cards').show();
                     }
                     break;
                 case "start":
                     state.gameIdentifier = message.data
                     break;
                 case "joined":
-                    state.players = parseInt(message.data, 10);
+                    state.numberOfPlayers = parseInt(message.data, 10);
                     break;
                 case "position":
                     state.position = parseInt(message.data, 10);
@@ -234,18 +315,19 @@
                     state.first = parseInt(message.data, 10);
                     break;
                 case "nogame":
-                    var url = new URL(window.location.href);
-                    var gameIdentifier = url.searchParams.get('gamekey');
+                    const url = new URL(window.location.href);
+                    const gameIdentifier = url.searchParams.get('gamekey');
                     if (gameIdentifier) {
                         joinGame(gameIdentifier);
                     }
                     break;
                 case "left":
+                    state.gameInProgress = false;
                     state.gameIdentifier = null
                     displayError('Broken game, a player has left the game')
                     break;
                 case "restarting":
-                    $('#result').html('');
+                    $('#result-overlay').hide();
                     $('#restart').hide();
                     break;
             }
@@ -284,7 +366,7 @@
         }
 
         function leave() {
-            if (confirm('Really leave game?')) {
+            if (confirm('Really quit game?')) {
                 connection.send('leave')
             }
         }
@@ -297,7 +379,7 @@
             const interceptors = {}
             const state = {}
 
-            var handler = {
+            const handler = {
                 set: (obj, prop, newVal) => {
                     obj[prop] = newVal;
                     if (interceptors[prop]) {
@@ -327,8 +409,8 @@
 
         state.attach('gameIdentifier', (obj) => {
             if (obj.gameIdentifier) {
-                var location = window.location;
-                var html = `${location.protocol}//${location.host}/?gamekey=${obj.gameIdentifier}`;
+                const location = window.location;
+                const html = `${location.protocol}//${location.host}/?gamekey=${obj.gameIdentifier}`;
 
                 $('#game-identifier').html(html)
                 $('#game-started').show()
@@ -343,9 +425,9 @@
             }
         });
 
-        state.attach('players', (state) => {
-            $('#joined-players').html(state.players);
-            if (state.players >= 2 && state.position === 0) {
+        state.attach('numberOfPlayers', (state) => {
+            $('#joined-players').html(state.numberOfPlayers);
+            if (state.numberOfPlayers >= 2 && state.position === 0) {
                 $('#game-started button').show()
             }
             $('#leave-game').show();
@@ -353,34 +435,78 @@
         })
 
         const turnCalculator = (obj) => {
-            state.turn = ((obj.cardsOnTable + obj.first) % obj.players) === obj.position;
+            const turn = ((obj.cardsOnTable + obj.first) % obj.numberOfPlayers);
+            if (!isNaN(turn)) {
+                state.turn = turn;
+            }
         }
+
+        state.attach('cardsOnTable', () => {
+            if (!state.gameInProgress) {
+                state.gameInProgress = true
+            }
+        })
 
         state.attach('cardsOnTable', turnCalculator);
         state.attach('first', turnCalculator);
-        state.attach('players', turnCalculator);
+        state.attach('numberOfPlayers', turnCalculator);
         state.attach('position', turnCalculator);
 
-        state.attach('turn', (state) => {
-            if (state.turn) {
-                $('#your-turn').show()
-            } else {
-                $('#your-turn').hide()
-            }
+        // let players = []
 
-            if (state.turn && state.first === state.position && state.cardsOnTable > 0) {
+        state.attach('gameInProgress', (obj) => {
+            if (obj.gameInProgress) {
+                $('#game-start').hide()
+                $('#game-started').hide()
+                $('.turn').removeClass('turn');
+                state.players = [];
+                let labels = [];
+                if (obj.numberOfPlayers == 4) {
+                    labels = ['playerLabel1', 'playerLabel2', 'playerLabel3', 'playerLabel4'];
+                } else if (obj.numberOfPlayers == 3) {
+                    $('#playerLabel3').html('');
+                    labels = ['playerLabel1', 'playerLabel2', 'playerLabel4'];
+                } else if (obj.numberOfPlayers == 2) {
+                    $('#playerLabel2').html('');
+                    $('#playerLabel4').html('');
+                    labels = ['playerLabel1', 'playerLabel3'];
+                }
+
+                for (let i = 0; i < obj.numberOfPlayers; i++) {
+                    const index = (i + obj.position) % obj.numberOfPlayers;
+                    const label = labels[i];
+                    $('#' + label).html(`Player ${(index + 1)}`);
+                    state.players[index] = label
+                }
+            }
+        })
+
+        state.attach('turn', (state) => {
+            $('.turn').removeClass('turn');
+            $('#' + state.players[state.turn]).addClass('turn');
+
+            if (state.turn === state.position && state.first === state.position && state.cardsOnTable > 0) {
                 $('#fetch-cards').show();
             } else {
                 $('#fetch-cards').hide();
             }
         })
 
-        var connection;
+        let connection;
 
         $(function () {
             connection = communicationHandler("ws://" + window.location.host + "/ws", handler);
             connection.connect();
         })
+
+        const copyGameIdentifierToClipboard = () => {
+            const el = document.createElement('textarea');
+            el.value = $('#game-identifier').html();
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
 
     </script>
 
