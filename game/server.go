@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"text/template"
+
+	"github.com/gobuffalo/packr/v2"
 )
 
 // Server object
@@ -13,6 +15,9 @@ type Server struct {
 	hub     *Hub
 }
 
+var publicBox = packr.New("public", "./../public")
+var templateBox = packr.New("template", "./../template")
+
 // NewServer generate new game server
 func NewServer() (*Server, error) {
 	server := &Server{hub: NewHub()}
@@ -20,8 +25,7 @@ func NewServer() (*Server, error) {
 	router := http.NewServeMux()
 	router.Handle("/", http.HandlerFunc(server.pageHandler))
 	router.Handle("/simulator", http.HandlerFunc(server.simulatorHandler))
-	router.Handle("/js/", http.FileServer(http.Dir("public")))
-	router.Handle("/images/", http.FileServer(http.Dir("public")))
+	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(publicBox)))
 	router.Handle("/ws", http.HandlerFunc(server.webSocket))
 
 	server.handler = router
@@ -35,18 +39,30 @@ func (p *Server) GetHandler() http.Handler {
 }
 
 func (p *Server) pageHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("public/template/index.html")
+	s, err := templateBox.FindString("public/template/index.html")
 	if err != nil {
 		log.Fatal("unable to parse template")
+	}
+
+	t, err := template.New("hello").Parse(s)
+
+	if err != nil {
+		log.Panic(err)
 	}
 
 	t.Execute(w, nil)
 }
 
 func (p *Server) simulatorHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("public/template/simulator.html")
+	s, err := templateBox.FindString("public/template/simulator.html")
 	if err != nil {
 		log.Fatal("unable to parse template")
+	}
+
+	t, err := template.New("simulator").Parse(s)
+
+	if err != nil {
+		log.Panic(err)
 	}
 
 	t.Execute(w, nil)
