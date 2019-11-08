@@ -15,8 +15,8 @@ type Server struct {
 	hub     *Hub
 }
 
-var publicBox = packr.New("public", "./../public")
-var templateBox = packr.New("template", "./../template")
+var publicBox = packr.New("public", "../public")
+var templateBox = packr.New("template", "../template")
 
 // NewServer generate new game server
 func NewServer() (*Server, error) {
@@ -39,7 +39,7 @@ func (p *Server) GetHandler() http.Handler {
 }
 
 func (p *Server) pageHandler(w http.ResponseWriter, r *http.Request) {
-	s, err := templateBox.FindString("public/template/index.html")
+	s, err := templateBox.FindString("index.html")
 	if err != nil {
 		log.Fatal("unable to parse template")
 	}

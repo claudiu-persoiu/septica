@@ -129,19 +129,19 @@
         }
 
         .clubs {
-            background-image: url("/static/images/clubs.png");
+            background-image: url("./static/images/clubs.png");
         }
 
         .diamond {
-            background-image: url("/static//images/diamond.png");
+            background-image: url("./static//images/diamond.png");
         }
 
         .hearts {
-            background-image: url("/static/images/hearts.png");
+            background-image: url("./static/images/hearts.png");
         }
 
         .spades {
-            background-image: url("/static/images/spades.png");
+            background-image: url("./static/images/spades.png");
         }
 
         #join-identifier {
@@ -234,7 +234,7 @@
 
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-    <script src="/static/js/communication-handler.js"></script>
+    <script src="./static/js/communication-handler.js"></script>
     <script>
 
         function handler(message) {
@@ -411,7 +411,7 @@
         state.attach('gameIdentifier', (obj) => {
             if (obj.gameIdentifier) {
                 const location = window.location;
-                const html = `${location.protocol}//${location.host}/?gamekey=${obj.gameIdentifier}`;
+                const html = `${location.protocol}//${location.host + location.pathname}?gamekey=${obj.gameIdentifier}`;
 
                 $('#game-identifier').html(html)
                 $('#game-started').show()
@@ -497,7 +497,7 @@
         let connection;
 
         $(function () {
-            connection = communicationHandler("ws://" + window.location.host + "/ws", handler);
+            connection = communicationHandler(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host + location.pathname}ws`, handler);
             connection.connect();
         })
 
