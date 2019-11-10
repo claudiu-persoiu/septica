@@ -142,7 +142,7 @@ func (g *game) isCut(card *card) bool {
 func (g *game) validTurn(client *Client) error {
 	// see if it's this client's turn
 	if (len(g.table)+g.firstCard)%len(g.Clients) != client.position {
-		return errors.New("invalid turn")
+		return errors.New("it is not your turn")
 	}
 
 	return nil
