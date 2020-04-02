@@ -28,14 +28,12 @@ func init() {
 
 	templateBox.Walk(func(name string, file file.File) error {
 		r := bufio.NewReader(file)
-
 		data, err := ioutil.ReadAll(r)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		_, err = templates.New(name).Parse(string(data))
-
 		return err
 	})
 }
