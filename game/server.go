@@ -1,12 +1,15 @@
 package game
 
 import (
+	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"text/template"
 
 	"github.com/gobuffalo/packr/v2"
+	"github.com/gobuffalo/packr/v2/file"
 )
 
 // Server object
@@ -17,6 +20,25 @@ type Server struct {
 
 var publicBox = packr.New("public", "../public")
 var templateBox = packr.New("template", "../template")
+
+var templates *template.Template
+
+func init() {
+	templates = &template.Template{}
+
+	templateBox.Walk(func(name string, file file.File) error {
+		r := bufio.NewReader(file)
+
+		data, err := ioutil.ReadAll(r)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		_, err = templates.New(name).Parse(string(data))
+
+		return err
+	})
+}
 
 // NewServer generate new game server
 func NewServer() (*Server, error) {
@@ -39,33 +61,11 @@ func (p *Server) GetHandler() http.Handler {
 }
 
 func (p *Server) pageHandler(w http.ResponseWriter, r *http.Request) {
-	s, err := templateBox.FindString("index.html")
-	if err != nil {
-		log.Fatal("unable to parse template")
-	}
-
-	t, err := template.New("hello").Parse(s)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	t.Execute(w, nil)
+	templates.ExecuteTemplate(w, "index.html", nil)
 }
 
 func (p *Server) simulatorHandler(w http.ResponseWriter, r *http.Request) {
-	s, err := templateBox.FindString("public/template/simulator.html")
-	if err != nil {
-		log.Fatal("unable to parse template")
-	}
-
-	t, err := template.New("simulator").Parse(s)
-
-	if err != nil {
-		log.Panic(err)
-	}
-
-	t.Execute(w, nil)
+	templates.ExecuteTemplate(w, "simulator.html", nil)
 }
 
 func (p *Server) webSocket(w http.ResponseWriter, r *http.Request) {
