@@ -21,11 +21,9 @@ type Server struct {
 var publicBox = packr.New("public", "../public")
 var templateBox = packr.New("template", "../template")
 
-var templates *template.Template
+var templates = &template.Template{}
 
 func init() {
-	templates = &template.Template{}
-
 	templateBox.Walk(func(name string, file file.File) error {
 		r := bufio.NewReader(file)
 		data, err := ioutil.ReadAll(r)
@@ -43,10 +41,10 @@ func NewServer() (*Server, error) {
 	server := &Server{hub: NewHub()}
 
 	router := http.NewServeMux()
-	router.Handle("/", http.HandlerFunc(server.pageHandler))
-	router.Handle("/simulator", http.HandlerFunc(server.simulatorHandler))
-	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(publicBox)))
-	router.Handle("/ws", http.HandlerFunc(server.webSocket))
+	router.HandleFunc("/", server.pageHandler)
+	router.HandleFunc("/simulator", server.simulatorHandler)
+	router.HandleFunc("/static/", http.StripPrefix("/static/", http.FileServer(publicBox)).ServeHTTP)
+	router.HandleFunc("/ws", server.webSocket)
 
 	server.handler = router
 
