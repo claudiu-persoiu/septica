@@ -84,7 +84,7 @@ func (h *Hub) begin(client *Client) error {
 		return err
 	}
 
-	return g.Start(client)
+	return g.Start(client, 0)
 }
 
 func (h *Hub) play(client *Client, cardIndex int) error {

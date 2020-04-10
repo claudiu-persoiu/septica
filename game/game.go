@@ -55,7 +55,7 @@ func (g *game) notifyClients(m *message) {
 	}
 }
 
-func (g *game) Start(client *Client) error {
+func (g *game) Start(client *Client, firstCard int) error {
 
 	if g.State != WAITING && g.State != OVER {
 		return errors.New("started")
@@ -71,8 +71,9 @@ func (g *game) Start(client *Client) error {
 
 	g.State = STARTED
 	g.table = nil
+	fmt.Println(g.firstCard)
 	// client that will server
-	g.firstCard = 0
+	g.firstCard = firstCard
 
 	fmt.Println("started game")
 
@@ -113,6 +114,7 @@ func (g *game) play(client *Client, cardIndex int) error {
 	}
 
 	g.table = append(g.table, card)
+	// remove card from user stack
 	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
 
 	cards, _ := json.Marshal(client.cards)
@@ -249,7 +251,18 @@ func (g *game) leave() error {
 
 func (g *game) restart(client *Client) error {
 	g.notifyClients(&message{Action: "restarting"})
-	return g.Start(client)
+
+	maxPoints := 0
+	possition := 0
+	// calculate last winner
+	for _, client := range g.Clients {
+		if client.points > maxPoints {
+			maxPoints = client.points
+			possition = client.position
+		}
+	}
+
+	return g.Start(client, possition)
 }
 
 var deck = []*card{

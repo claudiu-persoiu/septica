@@ -89,6 +89,10 @@
             text-align: center;
         }
 
+        .notturn {
+            opacity: 0.5;
+        }
+
         .card {
             background: #EFEFEF;
             border: 1.5px solid black;
@@ -245,6 +249,9 @@
             <p id="restart">
                 <button onclick="restart();" class="button">Restart game</button>
             </p>
+            <p>
+                <button onclick="leave(); return false;" class="button">Quit game</button>
+            </p>
         </div>
     </div>
 
@@ -289,6 +296,12 @@
                         } else if (results[connection] == max) {
                             winners.push(connection)
                         }
+                    }
+
+                    if (winners.length == Object.keys(results).length) {
+                        res += `<p>It was a tie...</p>`;
+                    } else if (winners.includes(state.position.toString())) {
+                        res += `<p class="self">You won!</p>`;
                     }
 
                     for (let connection in results) {
@@ -446,6 +459,7 @@
                 $('#leave-game').hide()
                 $('#cards').hide()
                 $('#table').html('')
+                $('#result-overlay').hide()
             }
         });
 
@@ -510,9 +524,13 @@
             $('.turn').removeClass('turn');
             $('#' + state.players[state.turn]).addClass('turn');
 
-            if (state.turn === state.position && state.first === state.position && state.cardsOnTable > 0) {
-                $('#fetch-cards').show();
+            if (state.turn === state.position) {
+                if (state.first === state.position && state.cardsOnTable > 0) {
+                    $('#fetch-cards').show();
+                }
+                $('#cards').removeClass("notturn")
             } else {
+                $('#cards').addClass("notturn")
                 $('#fetch-cards').hide();
             }
         })
