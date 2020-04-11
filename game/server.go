@@ -43,7 +43,7 @@ func NewServer() (*Server, error) {
 	router := http.NewServeMux()
 	router.HandleFunc("/", server.pageHandler)
 	router.HandleFunc("/simulator", server.simulatorHandler)
-	router.HandleFunc("/public/", http.FileServer(publicBox).ServeHTTP)
+	router.Handle("/public/", http.StripPrefix("/public/", http.FileServer(publicBox)))
 	router.HandleFunc("/ws", server.webSocket)
 
 	server.handler = router
