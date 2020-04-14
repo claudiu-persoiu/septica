@@ -89,6 +89,9 @@ func (g *game) Start(client *Client, firstCard int) error {
 		client.Send <- &message{Action: "first", Data: strconv.Itoa(g.firstCard)}
 	}
 
+	namesJSON, _ := json.Marshal(g.GetNames())
+	g.notifyClients(&message{Action: "names", Data: string(namesJSON)})
+
 	g.notifyClientsTableUpdate()
 
 	return nil
@@ -263,6 +266,15 @@ func (g *game) restart(client *Client) error {
 	}
 
 	return g.Start(client, possition)
+}
+
+func (g *game) GetNames() []string {
+	names := make([]string, len(g.Clients))
+	for i, c := range g.Clients {
+		names[i] = c.name
+	}
+
+	return names
 }
 
 var deck = []*card{

@@ -14,6 +14,7 @@ import (
 // Client - Game client
 type Client struct {
 	connection *websocket.Conn
+	name       string
 	identifer  string
 	Send       chan *message
 	hub        *Hub
@@ -36,6 +37,10 @@ func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
 func (c *Client) processMessage(m message) {
 
 	switch m.Action {
+	case "name":
+		c.name = m.Data
+		c.Send <- &message{Action: "name", Data: c.name}
+		c.Send <- &message{Action: "nogame"}
 	case "identify":
 		identifier := m.Data
 		client, _ := c.hub.users[identifier]
@@ -48,6 +53,14 @@ func (c *Client) processMessage(m message) {
 			c.cards = client.cards
 			c.position = client.position
 			c.points = client.points
+			c.name = client.name
+		}
+
+		if c.name != "" {
+			c.Send <- &message{Action: "name", Data: c.name}
+		} else {
+			c.Send <- &message{Action: "noname"}
+			return
 		}
 
 		if c.game != nil {
@@ -57,9 +70,9 @@ func (c *Client) processMessage(m message) {
 			c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
 			c.Send <- &message{Action: "start", Data: c.game.key}
 
-			// if c.game.State == WAITING {
-			// 	c.Send <- &message{Action: "start", Data: c.game.key}
-			// } else
+			namesJSON, _ := json.Marshal(c.game.GetNames())
+			c.Send <- &message{Action: "names", Data: string(namesJSON)}
+
 			if c.game.State == STARTED {
 				c.Send <- &message{Action: "first", Data: strconv.Itoa(c.game.firstCard)}
 
