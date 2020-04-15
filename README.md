@@ -5,8 +5,8 @@ It is a cards game of which I found several variations. The current variation is
 ## How to run?
 To run it just run:
 
-    $ git clone https://github.com/claudiu-persoiu/sedma.git
-    $ cd sedma
+    $ git clone https://github.com/claudiu-persoiu/septica.git
+    $ cd septica
     $ go mod download
     $ go run sedma.go
 
