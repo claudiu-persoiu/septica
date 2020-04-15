@@ -8,7 +8,7 @@ To run it just run:
     $ git clone https://github.com/claudiu-persoiu/septica.git
     $ cd septica
     $ go mod download
-    $ go run sedma.go
+    $ go run main.go
 
 The game will start on port 8008 and you can access it in a browser at http://localhost:8008
 

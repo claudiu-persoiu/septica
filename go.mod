@@ -1,4 +1,4 @@
-module github.com/claudiu-persoiu/sedma
+module github.com/claudiu-persoiu/septica
 
 go 1.12
 

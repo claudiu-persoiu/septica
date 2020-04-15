@@ -9,13 +9,18 @@
     <link rel="icon" type="image/png" href="./public/images/favicon.png" />
     <link rel="stylesheet" type="text/css" href="./public/css/styles.css" />
     <style type="text/css">
-        
+
     </style>
 </head>
 
 <body>
-    <div id="leave-game">
-        <a href="#" onclick="leave(); return false;">quit game</a>
+    <div class="menu-container">
+        <div id="leave-game">
+            <a href="#" onclick="leave(); return false;">quit game</a>
+        </div>
+        <div id="how-to-play" style="float: right;">
+            <a href="https://github.com/claudiu-persoiu/septica/wiki/How-to-play%3F" target="_blank">how to play?</a>
+        </div>
     </div>
 
     <div class="header">
@@ -42,7 +47,8 @@
         <div class="content">
             <div>
                 <form onsubmit="setName($('#name-identifier').val()); return false;">
-                    <input id="name-identifier" type="text" required="required" class="input-text" placeholder="Choose a name" />
+                    <input id="name-identifier" type="text" required="required" class="input-text"
+                        placeholder="Choose a name" />
                     <button class="button">Set name</button>
                 </form>
             </div>
@@ -57,8 +63,8 @@
             <div style="margin: 20px;">or</div>
             <div class="join">
                 <form onsubmit="joinGame($('#join-identifier').val()); return false;"></form>
-                    <input id="join-identifier" type="text" class="input-text" placeholder="Game identifer" />
-                    <button class="button">join game</button>
+                <input id="join-identifier" type="text" class="input-text" placeholder="Game identifer" />
+                <button class="button">join game</button>
                 </form>
             </div>
         </div>

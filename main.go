@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/claudiu-persoiu/sedma/game"
+	"github.com/claudiu-persoiu/septica/game"
 )
 
 func main() {

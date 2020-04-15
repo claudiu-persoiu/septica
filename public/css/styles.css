@@ -1,5 +1,15 @@
 h1 {
     text-align: center;
+    margin-top: 41px;
+}
+
+.menu-container {
+    position: absolute; right: 20px; top: 20px;
+}
+
+.menu-container a {
+    font-size: 15px;
+    padding: 0 0 0 15px;
 }
 
 .center {
@@ -120,15 +130,13 @@ h1 {
 #leave-game {
     display: none;
     float: right;
-    position: absolute;
-    right: 15px;
 }
-
+/* 
 #leave-game a {
     font-size: 15px;
     padding: 6px 15px;
 
-}
+} */
 
 #result-overlay {
     display: none;
