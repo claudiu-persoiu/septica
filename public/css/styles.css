@@ -51,7 +51,7 @@ h1 {
 
 .overlay .content {
     position: absolute;
-    top: 30%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
@@ -137,6 +137,20 @@ h1 {
     padding: 6px 15px;
 
 } */
+
+#result-overlay table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#result-overlay table, #result-overlay th, #result-overlay td {
+    border: 1px solid #cccccc;
+    padding: 10px;
+}
+
+#result-overlay td {
+    width: 50%;
+}
 
 #result-overlay {
     display: none;

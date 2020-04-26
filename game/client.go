@@ -22,6 +22,7 @@ type Client struct {
 	cards      []*card
 	position   int
 	points     int
+	won        int
 }
 
 func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
@@ -86,6 +87,7 @@ func (c *Client) processMessage(m message) {
 				c.Send <- &message{Action: "table", Data: string(cards)}
 
 				c.Send <- c.game.getResultMessage()
+				c.Send <- c.game.getGamesStatsMessage()
 			}
 		} else {
 			c.Send <- &message{Action: "nogame"}

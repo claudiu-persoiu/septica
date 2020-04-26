@@ -83,6 +83,8 @@
         <div class="content">
             <p>Game results:</p>
             <div id="result"></div>
+            <p>Overall stats:</p>
+            <div id="stats"></div>
             <p id="restart">
                 <button onclick="restart();" class="button">Restart game</button>
             </p>
@@ -145,9 +147,9 @@
                     for (let connection in results) {
                         res += `<tr>
                             <td class="${connection == state.position ? 'self' : ''}"  align="right">
-                                ${state.names[parseInt(connection, 10)]} :</td>
+                                ${state.names[parseInt(connection, 10)]}</td>
                             <td  class="${connection == state.position ? 'self' : ''}" align="left">
-                                ${results[connection]} ${winners.includes(connection) == true ? 'Won!' : ''}
+                                ${results[connection]}${winners.includes(connection) == true ? '&nbsp;Won!' : ''}
                             </td>
                         </tr>`;
                     }
@@ -162,6 +164,22 @@
                         $('#restart').show();
                     }
                     state.gameInProgress = false;
+                    break;
+                case "stats":
+                    let statsRes = `<table>`;
+                    const stats = JSON.parse(message.data);
+                    for (let connection in stats) {
+                        statsRes += `<tr>
+                            <td class="${connection == state.position ? 'self' : ''}"  align="right">
+                                ${state.names[parseInt(connection, 10)]}</td>
+                            <td  class="${connection == state.position ? 'self' : ''}" align="left">
+                                ${stats[connection]}
+                            </td>
+                        </tr>`;
+                    }
+                    statsRes += `</table>`;
+
+                    $('#stats').html(statsRes);
                     break;
                 case "cards":
                     cards = JSON.parse(message.data)

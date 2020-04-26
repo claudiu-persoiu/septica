@@ -223,7 +223,21 @@ func (g *game) fetchHand(client *Client) error {
 func (g *game) finishGame() error {
 	g.State = OVER
 
+	max := 0
+	for _, client := range g.Clients {
+		if client.points > max {
+			max = client.points
+		}
+	}
+
+	for _, client := range g.Clients {
+		if client.points == max {
+			client.won++
+		}
+	}
+
 	g.notifyClients(g.getResultMessage())
+	g.notifyClients(g.getGamesStatsMessage())
 	return nil
 }
 
@@ -236,6 +250,17 @@ func (g *game) getResultMessage() *message {
 
 	resultsString, _ := json.Marshal(result)
 	return &message{Action: "result", Data: string(resultsString)}
+}
+
+func (g *game) getGamesStatsMessage() *message {
+	result := make(map[int]int)
+
+	for _, client := range g.Clients {
+		result[client.position] = client.won
+	}
+
+	resultsString, _ := json.Marshal(result)
+	return &message{Action: "stats", Data: string(resultsString)}
 }
 
 func (g *game) leave() error {
