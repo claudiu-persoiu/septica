@@ -326,11 +326,11 @@
                 const location = window.location;
                 const html = `${location.protocol}//${location.host + location.pathname}?gamekey=${obj.gameIdentifier}`;
 
-                $('#game-identifier').html(html)
+                $('#game-identifier').html(html).attr('href', html)
                 $('#game-started').show()
                 $('#game-start').hide()
             } else {
-                $('#game-identifier').html('')
+                $('#game-identifier').html('').attr('href', '')
                 $('#game-start').show()
                 $('#game-started').hide()
                 $('#leave-game').hide()
