@@ -15,7 +15,7 @@ import (
 type Client struct {
 	connection *websocket.Conn
 	name       string
-	identifer  string
+	identifier string
 	Send       chan *message
 	hub        *Hub
 	game       *game
@@ -47,7 +47,7 @@ func (c *Client) processMessage(m message) {
 		client, _ := c.hub.users[identifier]
 
 		c.hub.users[identifier] = c
-		c.identifer = identifier
+		c.identifier = identifier
 
 		if client != nil {
 			c.game = client.game

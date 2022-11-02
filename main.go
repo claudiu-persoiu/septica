@@ -19,13 +19,9 @@ func main() {
 	address := ":8008"
 
 	fmt.Println("Starting server: " + address)
-	server, err := game.NewServer(publicBox, templateBox)
+	router := game.InitRouter(publicBox, templateBox)
 
-	if err != nil {
-		log.Fatal("Unable to start server", err)
-	}
-
-	err = http.ListenAndServe(address, server.GetHandler())
+	err := http.ListenAndServe(address, router)
 
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

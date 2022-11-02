@@ -132,11 +132,11 @@ func (h *Hub) restartGame(client *Client) error {
 }
 
 func getGameFromClient(h *Hub, c *Client) (*game, error) {
-	if c.identifer == "" {
+	if c.identifier == "" {
 		return nil, errors.New("unidentified user")
 	}
 
-	_, ok := h.users[c.identifer]
+	_, ok := h.users[c.identifier]
 
 	if ok == false {
 		return nil, errors.New("invalid user in hub")
