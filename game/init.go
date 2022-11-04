@@ -21,8 +21,8 @@ func InitRouter(publicBox, templateBox embed.FS) http.Handler {
 	}
 
 	router := http.NewServeMux()
-	router.HandleFunc("/", serveTemplate("template/index.html"))
-	router.HandleFunc("/simulator", serveTemplate("template/simulator.html"))
+	router.HandleFunc("/", serveTemplate("template/index.html", nil))
+	router.HandleFunc("/simulator", serveTemplate("template/simulator.html", nil))
 	router.Handle("/public/", http.FileServer(http.FS(publicBox)))
 	router.HandleFunc("/ws", handleWebSocket)
 
@@ -46,9 +46,9 @@ func parseTemplates(templateBox embed.FS) error {
 	})
 }
 
-func serveTemplate(template string) func(w http.ResponseWriter, r *http.Request) {
+func serveTemplate(template string, data interface{}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := templates.ExecuteTemplate(w, template, nil)
+		err := templates.ExecuteTemplate(w, template, data)
 		if err != nil {
 			log.Fatal("could not parse template " + template)
 			return
