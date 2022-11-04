@@ -145,12 +145,7 @@ var (
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
-	newline  = []byte{'\n'}
-	space    = []byte{' '}
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
+	newline = []byte{'\n'}
 )
 
 func (c *Client) waitForMsg() {
@@ -174,7 +169,7 @@ func (c *Client) waitForMsg() {
 			c.processMessage(obj)
 			log.Print(obj.Action)
 		} else {
-			log.Println("Error parcing message:")
+			log.Println("Error parsing message:")
 			log.Println(err)
 		}
 	}
