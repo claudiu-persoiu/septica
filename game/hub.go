@@ -7,27 +7,25 @@ import (
 	"strconv"
 )
 
-// Hub games hub
-type Hub struct {
-	games    map[string]*game
-	Messages chan string
-	users    map[string]*Client
+// hub games hub
+type hub struct {
+	games map[string]*game
+	users map[string]*Client
 }
 
-// NewHub create new Hub
-func NewHub() *Hub {
-	hub := &Hub{
-		Messages: make(chan string),
-		games:    make(map[string]*game),
-		users:    make(map[string]*Client)}
+// NewHub create new hub
+func NewHub() *hub {
+	hub := &hub{
+		games: make(map[string]*game),
+		users: make(map[string]*Client)}
 	return hub
 }
 
 // Start start a new game
-func (h *Hub) Start(client *Client) error {
+func (h *hub) Start(client *Client) error {
 	key := ""
 	if client.game == nil {
-		g := newGame()
+		g := NewGame()
 		key = h.registerGame(g)
 		if err := h.join(key, client); err != nil {
 			return err
@@ -51,7 +49,7 @@ func randSeq(n int) string {
 	return string(b)
 }
 
-func (h *Hub) registerGame(game *game) string {
+func (h *hub) registerGame(game *game) string {
 	key := randSeq(7)
 	h.games[key] = game
 	game.key = key
@@ -59,7 +57,7 @@ func (h *Hub) registerGame(game *game) string {
 	return key
 }
 
-func (h *Hub) join(gameKey string, client *Client) error {
+func (h *hub) join(gameKey string, client *Client) error {
 	g, ok := h.games[gameKey]
 
 	if ok == false {
@@ -78,7 +76,7 @@ func (h *Hub) join(gameKey string, client *Client) error {
 	return err
 }
 
-func (h *Hub) begin(client *Client) error {
+func (h *hub) begin(client *Client) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
 		return err
@@ -87,7 +85,7 @@ func (h *Hub) begin(client *Client) error {
 	return g.Start(client, 0)
 }
 
-func (h *Hub) play(client *Client, cardIndex int) error {
+func (h *hub) play(client *Client, cardIndex int) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
 		return err
@@ -96,7 +94,7 @@ func (h *Hub) play(client *Client, cardIndex int) error {
 	return g.play(client, cardIndex)
 }
 
-func (h *Hub) fetchHand(client *Client) error {
+func (h *hub) fetchHand(client *Client) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
 		return err
@@ -105,7 +103,7 @@ func (h *Hub) fetchHand(client *Client) error {
 	return g.fetchHand(client)
 }
 
-func (h *Hub) leave(client *Client) error {
+func (h *hub) leave(client *Client) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
 		return err
@@ -122,7 +120,7 @@ func (h *Hub) leave(client *Client) error {
 	return nil
 }
 
-func (h *Hub) restartGame(client *Client) error {
+func (h *hub) restartGame(client *Client) error {
 	g, err := getGameFromClient(h, client)
 	if err != nil {
 		return err
@@ -131,7 +129,7 @@ func (h *Hub) restartGame(client *Client) error {
 	return g.restart(client)
 }
 
-func getGameFromClient(h *Hub, c *Client) (*game, error) {
+func getGameFromClient(h *hub, c *Client) (*game, error) {
 	if c.identifier == "" {
 		return nil, errors.New("unidentified user")
 	}

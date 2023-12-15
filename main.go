@@ -3,10 +3,10 @@ package main
 import (
 	"embed"
 	"fmt"
+	"github.com/claudiu-persoiu/septica/server/router"
+	"github.com/claudiu-persoiu/septica/server/templates"
 	"log"
 	"net/http"
-
-	"github.com/claudiu-persoiu/septica/game"
 )
 
 //go:embed public
@@ -19,9 +19,13 @@ func main() {
 	address := ":8008"
 
 	fmt.Println("Starting server: " + address)
-	router := game.InitRouter(publicBox, templateBox)
 
-	err := http.ListenAndServe(address, router)
+	templatesHandler := templates.NewTemplatesHandler(templateBox)
+	publicHandler := http.FileServer(http.FS(publicBox))
+
+	r := router.Init(templatesHandler, publicHandler.ServeHTTP)
+
+	err := http.ListenAndServe(address, r)
 
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

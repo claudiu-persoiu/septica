@@ -3,21 +3,29 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-// Client - Game client
+type Connection interface {
+	ReadMessage() (messageType int, p []byte, err error)
+	SetWriteDeadline(t time.Time) error
+	WriteMessage(messageType int, data []byte) error
+	NextWriter(messageType int) (io.WriteCloser, error)
+	Close() error
+}
+
+// Client - game Client
 type Client struct {
-	connection *websocket.Conn
+	connection Connection
 	name       string
 	identifier string
 	Send       chan *message
-	hub        *Hub
+	hub        *hub
 	game       *game
 	cards      []*card
 	position   int
@@ -25,13 +33,7 @@ type Client struct {
 	won        int
 }
 
-func newClient(w http.ResponseWriter, r *http.Request, hub *Hub) *Client {
-	conn, err := wsUpgrader.Upgrade(w, r, nil)
-
-	if err != nil {
-		log.Printf("problem upgrading connection to websockets %v\n", err)
-	}
-
+func NewClient(conn Connection, hub *hub) *Client {
 	return &Client{connection: conn, Send: make(chan *message, 256), hub: hub}
 }
 
@@ -140,17 +142,15 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
-var (
-	wsUpgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-	newline = []byte{'\n'}
-)
+func (c *Client) Run() {
+	go c.waitForMsg()
+	go c.sendMessage()
+}
 
 func (c *Client) waitForMsg() {
 	defer func() {
 		c.connection.Close()
+		// TODO handle user disconnect to stop game
 		fmt.Println("User disconnected")
 	}()
 	for {
@@ -205,18 +205,6 @@ func (c *Client) sendMessage() {
 			}
 
 			w.Write(jsonMessage)
-
-			// Add queued chat messages to the current websocket message.
-			n := len(c.Send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				jsonMessage, err := json.Marshal(<-c.Send)
-
-				if err != nil {
-					return
-				}
-				w.Write(jsonMessage)
-			}
 
 			if err := w.Close(); err != nil {
 				return

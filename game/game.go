@@ -25,7 +25,7 @@ const (
 	BROKEN  = 3
 )
 
-func newGame() *game {
+func NewGame() *game {
 	g := &game{State: WAITING}
 
 	return g
@@ -72,7 +72,7 @@ func (g *game) Start(client *Client, firstCard int) error {
 	g.State = STARTED
 	g.table = nil
 	fmt.Println(g.firstCard)
-	// client that will server
+	// Client that will server
 	g.firstCard = firstCard
 
 	fmt.Println("started game")
@@ -145,7 +145,7 @@ func (g *game) isCut(card *card) bool {
 }
 
 func (g *game) validTurn(client *Client) error {
-	// see if it's this client's turn
+	// see if it's this Client's turn
 	if (len(g.table)+g.firstCard)%len(g.Clients) != client.position {
 		return errors.New("it is not your turn")
 	}
