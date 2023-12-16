@@ -24,7 +24,7 @@ type Client struct {
 	connection Connection
 	name       string
 	identifier string
-	Send       chan *message
+	send       chan *message
 	hub        *hub
 	game       *game
 	cards      []*card
@@ -34,7 +34,7 @@ type Client struct {
 }
 
 func NewClient(conn Connection, hub *hub) *Client {
-	return &Client{connection: conn, Send: make(chan *message, 256), hub: hub}
+	return &Client{connection: conn, send: make(chan *message, 256), hub: hub}
 }
 
 func (c *Client) processMessage(m message) {
@@ -42,8 +42,8 @@ func (c *Client) processMessage(m message) {
 	switch m.Action {
 	case "name":
 		c.name = m.Data
-		c.Send <- &message{Action: "name", Data: c.name}
-		c.Send <- &message{Action: "nogame"}
+		c.send <- &message{Action: "name", Data: c.name}
+		c.send <- &message{Action: "nogame"}
 	case "identify":
 		identifier := m.Data
 		client, _ := c.hub.users[identifier]
@@ -60,39 +60,39 @@ func (c *Client) processMessage(m message) {
 		}
 
 		if c.name != "" {
-			c.Send <- &message{Action: "name", Data: c.name}
+			c.send <- &message{Action: "name", Data: c.name}
 		} else {
-			c.Send <- &message{Action: "noname"}
+			c.send <- &message{Action: "noname"}
 			return
 		}
 
 		if c.game != nil {
 			c.game.Clients[c.position] = c
 
-			c.Send <- &message{Action: "position", Data: strconv.Itoa(c.position)}
-			c.Send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
-			c.Send <- &message{Action: "start", Data: c.game.key}
+			c.send <- &message{Action: "position", Data: strconv.Itoa(c.position)}
+			c.send <- &message{Action: "joined", Data: strconv.Itoa(len(c.game.Clients))}
+			c.send <- &message{Action: "start", Data: c.game.key}
 
 			namesJSON, _ := json.Marshal(c.game.GetNames())
-			c.Send <- &message{Action: "names", Data: string(namesJSON)}
+			c.send <- &message{Action: "names", Data: string(namesJSON)}
 
 			if c.game.State == STARTED {
-				c.Send <- &message{Action: "first", Data: strconv.Itoa(c.game.firstCard)}
+				c.send <- &message{Action: "first", Data: strconv.Itoa(c.game.firstCard)}
 
 				cards, _ := json.Marshal(c.game.table)
-				c.Send <- &message{Action: "table", Data: string(cards)}
+				c.send <- &message{Action: "table", Data: string(cards)}
 
 				cards, _ = json.Marshal(c.cards)
-				c.Send <- &message{Action: "cards", Data: string(cards)}
+				c.send <- &message{Action: "cards", Data: string(cards)}
 			} else if c.game.State == OVER {
 				cards, _ := json.Marshal(c.game.table)
-				c.Send <- &message{Action: "table", Data: string(cards)}
+				c.send <- &message{Action: "table", Data: string(cards)}
 
-				c.Send <- c.game.getResultMessage()
-				c.Send <- c.game.getGamesStatsMessage()
+				c.send <- c.game.getResultMessage()
+				c.send <- c.game.getGamesStatsMessage()
 			}
 		} else {
-			c.Send <- &message{Action: "nogame"}
+			c.send <- &message{Action: "nogame"}
 		}
 
 	case "start":
@@ -100,34 +100,34 @@ func (c *Client) processMessage(m message) {
 	case "join":
 		err := c.hub.join(m.Data, c)
 		if err != nil {
-			c.Send <- &message{Action: "join", Data: err.Error()}
+			c.send <- &message{Action: "join", Data: err.Error()}
 		}
 	case "begin":
 		err := c.hub.begin(c)
 		if err != nil {
-			c.Send <- &message{Action: "error", Data: err.Error()}
+			c.send <- &message{Action: "error", Data: err.Error()}
 		}
 	case "play":
 		i, err := strconv.Atoi(m.Data)
 		if err != nil {
-			c.Send <- &message{Action: "error", Data: "invalid card index send"}
+			c.send <- &message{Action: "error", Data: "invalid card index send"}
 		} else {
 			err := c.hub.play(c, i)
 			if err != nil {
-				c.Send <- &message{Action: "error", Data: err.Error()}
+				c.send <- &message{Action: "error", Data: err.Error()}
 			}
 		}
 	case "fetch":
 		err := c.hub.fetchHand(c)
 		if err != nil {
-			c.Send <- &message{Action: "error", Data: err.Error()}
+			c.send <- &message{Action: "error", Data: err.Error()}
 		}
 	case "leave":
 		c.hub.leave(c)
 	case "restart":
 		c.hub.restartGame(c)
 	default:
-		c.Send <- &message{Action: "error", Data: "invalid command"}
+		c.send <- &message{Action: "error", Data: "invalid command"}
 	}
 }
 
@@ -138,13 +138,17 @@ const (
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second
 
-	// Send pings to peer with this period. Must be less than pongWait.
+	// send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 )
 
 func (c *Client) Run() {
 	go c.waitForMsg()
 	go c.sendMessage()
+}
+
+func (c *Client) Send(message *message) {
+	c.send <- message
 }
 
 func (c *Client) waitForMsg() {
@@ -183,7 +187,7 @@ func (c *Client) sendMessage() {
 	}()
 	for {
 		select {
-		case message, ok := <-c.Send:
+		case message, ok := <-c.send:
 
 			fmt.Println(message)
 

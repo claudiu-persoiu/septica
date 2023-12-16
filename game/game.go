@@ -51,7 +51,7 @@ func (g *game) AddPlayer(client *Client) error {
 
 func (g *game) notifyClients(m *message) {
 	for _, client := range g.Clients {
-		client.Send <- m
+		client.Send(m)
 	}
 }
 
@@ -84,9 +84,9 @@ func (g *game) Start(client *Client, firstCard int) error {
 		client.points = 0
 		g.Deck = g.Deck[:len(g.Deck)-4]
 		cards, _ := json.Marshal(client.cards)
-		client.Send <- &message{Action: "cards", Data: string(cards)}
-		client.Send <- &message{Action: "possition", Data: strconv.Itoa(client.position)}
-		client.Send <- &message{Action: "first", Data: strconv.Itoa(g.firstCard)}
+		client.Send(&message{Action: "cards", Data: string(cards)})
+		client.Send(&message{Action: "possition", Data: strconv.Itoa(client.position)})
+		client.Send(&message{Action: "first", Data: strconv.Itoa(g.firstCard)})
 	}
 
 	namesJSON, _ := json.Marshal(g.GetNames())
@@ -121,7 +121,7 @@ func (g *game) play(client *Client, cardIndex int) error {
 	client.cards = append(client.cards[:cardIndex], client.cards[cardIndex+1:]...)
 
 	cards, _ := json.Marshal(client.cards)
-	client.Send <- &message{Action: "cards", Data: string(cards)}
+	client.Send(&message{Action: "cards", Data: string(cards)})
 
 	g.notifyClientsTableUpdate()
 
@@ -214,7 +214,7 @@ func (g *game) fetchHand(client *Client) error {
 		client.cards = append(client.cards, g.Deck[len(g.Deck)-cardsPerPlayer:]...)
 		g.Deck = g.Deck[:len(g.Deck)-cardsPerPlayer]
 		cards, _ := json.Marshal(client.cards)
-		client.Send <- &message{Action: "cards", Data: string(cards)}
+		client.Send(&message{Action: "cards", Data: string(cards)})
 	}
 
 	return nil

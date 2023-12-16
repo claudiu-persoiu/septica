@@ -34,7 +34,7 @@ func (h *hub) Start(client *Client) error {
 		key = client.game.key
 	}
 	fmt.Println("Starting game: " + key)
-	client.Send <- &message{Action: "start", Data: key}
+	client.Send(&message{"start", key})
 
 	return nil
 }
@@ -70,8 +70,8 @@ func (h *hub) join(gameKey string, client *Client) error {
 		client.game = g
 	}
 
-	client.Send <- &message{Action: "start", Data: g.key}
-	client.Send <- &message{Action: "position", Data: strconv.Itoa(client.position)}
+	client.Send(&message{"start", g.key})
+	client.Send(&message{"position", strconv.Itoa(client.position)})
 
 	return err
 }
