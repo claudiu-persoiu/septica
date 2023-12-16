@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
-	"time"
 )
 
 type game struct {
@@ -281,16 +280,16 @@ func (g *game) restart(client *Client) error {
 	g.notifyClients(&message{Action: "restarting"})
 
 	maxPoints := 0
-	possition := 0
+	position := 0
 	// calculate last winner
 	for _, client := range g.Clients {
 		if client.points > maxPoints {
 			maxPoints = client.points
-			possition = client.position
+			position = client.position
 		}
 	}
 
-	return g.Start(client, possition)
+	return g.Start(client, position)
 }
 
 func (g *game) GetNames() []string {
@@ -341,10 +340,6 @@ func cardsShuffle() []*card {
 	newDeck := make([]*card, len(deck))
 	copy(newDeck, deck)
 
-	fmt.Println(deck)
-	fmt.Println(newDeck)
-
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(newDeck), func(i, j int) { newDeck[i], newDeck[j] = newDeck[j], newDeck[i] })
 
 	return newDeck

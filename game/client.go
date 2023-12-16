@@ -182,6 +182,7 @@ func (c *Client) waitForMsg() {
 func (c *Client) sendMessage() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
+		// @TODO handle user disconnect to stop game
 		ticker.Stop()
 		c.connection.Close()
 	}()
